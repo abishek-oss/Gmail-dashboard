@@ -159,25 +159,12 @@ var nextRefresh = null;
 // ─────────────────────────────────────────────
 // INIT — check URL param first, then localStorage
 // ─────────────────────────────────────────────
+var HARDCODED_SHEET_ID = '13_1g-Iej0YNbR-6YY2rLoM3-R5uHWpfqdrSh2FLct44';
+
 window.addEventListener('load', function() {
-  var params = new URLSearchParams(window.location.search);
-  var urlSheet = params.get('sheet');
-
-  if (urlSheet) {
-    var clean = extractSheetId(urlSheet);
-    localStorage.setItem(STORAGE_KEY, clean);
-    // Clean up URL without reload
-    var newUrl = window.location.pathname;
-    window.history.replaceState({}, '', newUrl);
-  }
-
-  var saved = localStorage.getItem(STORAGE_KEY);
-  if (saved) {
-    showDashboard();
-    loadData(saved);
-  } else {
-    showSetup();
-  }
+  localStorage.setItem(STORAGE_KEY, HARDCODED_SHEET_ID);
+  showDashboard();
+  loadData(HARDCODED_SHEET_ID);
 });
 
 // ─────────────────────────────────────────────
@@ -228,7 +215,7 @@ function showDashboard() {
         '<div><div class="page-title">Pricing Request Tracker</div><div class="page-sub">Live response time monitoring — synced from Google Sheets</div></div>' +
         '<div class="header-right">' +
           '<span class="last-updated" id="last-updated">Loading…</span>' +
-          '<button class="btn-change-sheet" onclick="changeSheet()">Change sheet</button>' +
+          '' +
         '</div>' +
       '</div>' +
       '<div id="error-container"></div>' +
