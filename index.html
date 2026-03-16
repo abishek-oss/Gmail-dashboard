@@ -1,419 +1,358 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pricing Request Dashboard — AMZ Prep</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
-  <style>
-    :root {
-      --navy: #0f1e3c; --navy-mid: #1a2f5a;
-      --accent: #2563eb; --accent-light: #3b82f6;
-      --green: #16a34a; --green-bg: #dcfce7;
-      --amber: #d97706; --amber-bg: #fef3c7;
-      --red: #dc2626;   --red-bg:  #fee2e2;
-      --blue: #2563eb;  --blue-bg: #dbeafe;
-      --text: #0f172a; --text-muted: #64748b; --text-light: #94a3b8;
-      --border: #e2e8f0; --surface: #f8fafc; --white: #ffffff;
-      --radius: 10px; --radius-lg: 14px;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f1f5f9; color: var(--text); min-height: 100vh; }
-
-    /* NAV */
-    .nav { background: var(--navy); padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; height: 56px; position: sticky; top: 0; z-index: 100; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
-    .nav-brand { display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 600; color: #fff; text-decoration: none; }
-    .logo-box { width: 30px; height: 30px; background: var(--accent); border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; color: #fff; }
-    .nav-right { display: flex; align-items: center; gap: 8px; }
-    .nav-badge { font-size: 11px; padding: 3px 10px; border-radius: 999px; background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.65); }
-    .nav-btn { font-size: 12px; padding: 6px 14px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.08); color: #fff; cursor: pointer; font-weight: 500; transition: background 0.15s; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; }
-    .nav-btn:hover { background: rgba(255,255,255,0.15); }
-    #refresh-indicator { font-size: 11px; color: rgba(255,255,255,0.4); }
-
-    /* SETUP SCREEN */
-    .setup-screen { max-width: 560px; margin: 5rem auto; padding: 0 1.5rem; text-align: center; }
-    .setup-logo { width: 56px; height: 56px; background: var(--navy); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800; color: #fff; margin: 0 auto 1.5rem; }
-    .setup-title { font-size: 22px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
-    .setup-sub { font-size: 14px; color: var(--text-muted); margin-bottom: 2rem; line-height: 1.6; }
-    .setup-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.75rem; text-align: left; }
-    .setup-steps { list-style: none; margin-bottom: 1.5rem; }
-    .setup-steps li { display: flex; gap: 12px; margin-bottom: 1rem; font-size: 13px; color: var(--text); line-height: 1.6; }
-    .step-num { width: 22px; height: 22px; border-radius: 50%; background: var(--navy); color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
-    .setup-input-row { display: flex; gap: 8px; }
-    .setup-input { flex: 1; font-size: 13px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; outline: none; color: var(--text); background: var(--surface); font-family: 'Courier New', monospace; }
-    .setup-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
-    .btn-connect { font-size: 13px; padding: 10px 20px; border-radius: 8px; border: none; background: var(--accent); color: #fff; cursor: pointer; font-weight: 600; white-space: nowrap; transition: background 0.15s; }
-    .btn-connect:hover { background: var(--accent-light); }
-    .setup-hint { font-size: 12px; color: var(--text-light); margin-top: 10px; line-height: 1.6; }
-    code { font-family: 'Courier New', monospace; font-size: 11px; background: #f1f5f9; padding: 1px 5px; border-radius: 3px; color: var(--accent); }
-
-    /* MAIN DASHBOARD */
-    .main { max-width: 1120px; margin: 0 auto; padding: 1.75rem 1.5rem; }
-    .page-header { margin-bottom: 1.75rem; display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
-    .page-title { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
-    .page-sub { font-size: 13px; color: var(--text-muted); margin-top: 3px; }
-    .header-right { display: flex; align-items: center; gap: 8px; }
-    .last-updated { font-size: 12px; color: var(--text-light); }
-    .btn-change-sheet { font-size: 11px; padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--white); color: var(--text-muted); cursor: pointer; }
-    .btn-change-sheet:hover { color: var(--text); border-color: var(--text-muted); }
-
-    /* STATS */
-    .stats-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 1.5rem; }
-    .stat-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; }
-    .stat-card.dark { background: var(--navy); border-color: var(--navy); }
-    .stat-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 8px; }
-    .stat-card.dark .stat-label { color: rgba(255,255,255,0.45); }
-    .stat-value { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; color: var(--text); line-height: 1; }
-    .stat-card.dark .stat-value { color: #fff; }
-    .stat-sub { font-size: 12px; color: var(--text-light); margin-top: 5px; }
-    .stat-card.dark .stat-sub { color: rgba(255,255,255,0.35); }
-    .delta { display: inline-flex; align-items: center; font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 999px; margin-top: 7px; }
-    .delta.good { background: var(--green-bg); color: var(--green); }
-    .delta.warn { background: var(--amber-bg); color: var(--amber); }
-    .delta.bad  { background: var(--red-bg); color: var(--red); }
-
-    /* CHARTS */
-    .charts-row { display: grid; grid-template-columns: 1fr 290px; gap: 12px; margin-bottom: 1.5rem; }
-    .card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; }
-    .card-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 1.25rem; display: flex; align-items: center; justify-content: space-between; }
-    .card-sub { font-size: 11px; font-weight: 400; color: var(--text-muted); }
-    .bar-item { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-    .bar-name { font-size: 12px; color: var(--text); width: 130px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .bar-track { flex: 1; height: 7px; background: #f1f5f9; border-radius: 4px; overflow: hidden; }
-    .bar-fill { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
-    .bar-num { font-size: 12px; color: var(--text-muted); width: 42px; text-align: right; flex-shrink: 0; font-variant-numeric: tabular-nums; }
-    .donut-wrap { display: flex; flex-direction: column; align-items: center; gap: 16px; }
-    .donut-canvas { width: 130px !important; height: 130px !important; }
-    .legend-row { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text); margin-bottom: 7px; }
-    .legend-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
-    .legend-count { margin-left: auto; font-weight: 600; }
-
-    /* TABLE */
-    .table-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
-    .table-header { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
-    .table-title { font-size: 13px; font-weight: 600; }
-    .filter-row { display: flex; gap: 6px; flex-wrap: wrap; }
-    .filter-btn { font-size: 11px; padding: 4px 12px; border-radius: 999px; border: 1px solid var(--border); background: transparent; color: var(--text-muted); cursor: pointer; font-weight: 500; transition: all 0.12s; }
-    .filter-btn.active, .filter-btn:hover { background: var(--navy); color: #fff; border-color: var(--navy); }
-    .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    .data-table thead tr { background: var(--surface); }
-    .data-table th { padding: 9px 16px; text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); border-bottom: 1px solid var(--border); }
-    .data-table td { padding: 11px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; color: var(--text); }
-    .data-table tr:last-child td { border-bottom: none; }
-    .data-table tr:hover td { background: #fafbfc; }
-    .subject-cell { color: var(--text-muted); max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .pill { display: inline-flex; align-items: center; font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
-    .pill.on-time { background: var(--green-bg); color: var(--green); }
-    .pill.delayed  { background: var(--amber-bg); color: var(--amber); }
-    .pill.overdue  { background: var(--red-bg); color: var(--red); }
-    .pill.pending  { background: var(--blue-bg); color: var(--blue); }
-
-    /* STATES */
-    .loading-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 5rem 1rem; gap: 16px; }
-    .spinner-lg { width: 36px; height: 36px; border: 3px solid #e2e8f0; border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
-    .loading-text { font-size: 14px; color: var(--text-muted); }
-    .error-banner { background: var(--red-bg); border: 1px solid #fca5a5; border-radius: var(--radius); padding: 12px 16px; font-size: 13px; color: var(--red); margin-bottom: 1.25rem; }
-    .empty-state { text-align: center; padding: 3rem 1rem; color: var(--text-muted); font-size: 13px; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    @media (max-width: 768px) {
-      .stats-grid { grid-template-columns: repeat(2, 1fr); }
-      .charts-row { grid-template-columns: 1fr; }
-      .nav { padding: 0 1rem; }
-      .main { padding: 1rem; }
-    }
-  </style>
-</head>
-<body>
-
-<nav class="nav">
-  <div class="nav-brand">
-    <div class="logo-box">A</div>
-    AMZ Prep
-  </div>
-  <div class="nav-right">
-    <span id="refresh-indicator"></span>
-    <span class="nav-badge">Pricing Tracker</span>
-    <button class="nav-btn" onclick="manualRefresh()">↻ Refresh</button>
-  </div>
-</nav>
-
-<div id="app"></div>
-
-<script>
-// ─────────────────────────────────────────────
-// CONFIG
-// ─────────────────────────────────────────────
-var STORAGE_KEY = 'amzprep_sheet_id';
-var REFRESH_INTERVAL = 5 * 60 * 1000; // 5 min
-var STATUS_COLORS = { 'on-time':'#16a34a', 'delayed':'#d97706', 'overdue':'#dc2626', 'pending':'#2563eb' };
-var STATUS_LABELS = { 'on-time':'✅ On Time', 'delayed':'⚠️ Delayed', 'overdue':'❌ Overdue', 'pending':'⏳ Pending' };
-
-var allData = [];
-var activeFilter = 'all';
-var donutChart = null;
-var refreshTimer = null;
-var countdownTimer = null;
-var nextRefresh = null;
-
-// ─────────────────────────────────────────────
-// INIT — check URL param first, then localStorage
-// ─────────────────────────────────────────────
-var HARDCODED_SHEET_ID = '13_1g-Iej0YNbR-6YY2rLoM3-R5uHWpfqdrSh2FLct44';
-
-window.addEventListener('load', function() {
-  localStorage.setItem(STORAGE_KEY, HARDCODED_SHEET_ID);
-  showDashboard();
-  loadData(HARDCODED_SHEET_ID);
-});
-
-// ─────────────────────────────────────────────
-// SETUP SCREEN
-// ─────────────────────────────────────────────
-function showSetup() {
-  document.getElementById('app').innerHTML =
-    '<div class="setup-screen">' +
-      '<div class="setup-logo">A</div>' +
-      '<div class="setup-title">Connect your Google Sheet</div>' +
-      '<div class="setup-sub">Paste your Sheet ID once — the dashboard remembers it and auto-refreshes every 5 minutes.</div>' +
-      '<div class="setup-card">' +
-        '<ol class="setup-steps">' +
-          '<li><div class="step-num">1</div><div>Open your <strong>"Pricing Response Tracker"</strong> Google Sheet (created by the Apps Script)</div></li>' +
-          '<li><div class="step-num">2</div><div>Click <strong>Share → Anyone with the link → Viewer</strong> so the dashboard can read it</div></li>' +
-          '<li><div class="step-num">3</div><div>Copy the Sheet ID from the URL:<br><code>docs.google.com/spreadsheets/d/<strong>SHEET_ID_HERE</strong>/edit</code></div></li>' +
-          '<li><div class="step-num">4</div><div>Paste it below — you only need to do this once</div></li>' +
-        '</ol>' +
-        '<div class="setup-input-row">' +
-          '<input class="setup-input" id="sheet-input" placeholder="Paste Sheet ID or full URL..." />' +
-          '<button class="btn-connect" onclick="connect()">Connect →</button>' +
-        '</div>' +
-        '<div class="setup-hint" id="setup-error"></div>' +
-      '</div>' +
-    '</div>';
-
-  document.getElementById('sheet-input').addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') connect();
-  });
+// ============================================================
+// Gmail Daily Digest + Nudge + Pricing Tracker
+// For: abishek@amzprep.com
+// ============================================================
+ 
+var MY_EMAIL        = "abishek@amzprep.com";
+var RESPONDERS      = ["abishek@amzprep.com", "goku@amzprep.com"];
+var LABEL_NAME      = "Need to Respond";
+var NUDGE_LABEL     = "⏰ Follow Up Now";
+var RESOLVED_LABEL  = "✅ Resolved";
+var PRICING_LABEL   = "💰 Pricing Request";
+var SHEET_NAME      = "Pricing Response Tracker";
+var DIGEST_HOUR     = 8;
+var NUDGE_HOURS     = 4;
+var NUDGE_INTERVAL  = 2;
+ 
+// ============================================================
+// WEB APP — handles "Mark as Resolved" button clicks
+// Deploy this script as a Web App for the button to work
+// ============================================================
+function doGet(e) {
+  var threadId = e && e.parameter && e.parameter.resolve;
+  if (threadId) {
+    return resolveThread(threadId);
+  }
+  // No param — just return a confirmation page
+  return HtmlService.createHtmlOutput('<p style="font-family:sans-serif;padding:2rem;">Nothing to do.</p>');
 }
-
-function connect() {
-  var val = document.getElementById('sheet-input').value.trim();
-  if (!val) { document.getElementById('setup-error').innerHTML = '<span style="color:var(--red)">Please paste your Sheet ID first.</span>'; return; }
-  var id = extractSheetId(val);
-  localStorage.setItem(STORAGE_KEY, id);
-  showDashboard();
-  loadData(id);
-}
-
-// ─────────────────────────────────────────────
-// DASHBOARD SHELL
-// ─────────────────────────────────────────────
-function showDashboard() {
-  document.getElementById('app').innerHTML =
-    '<div class="main">' +
-      '<div class="page-header">' +
-        '<div><div class="page-title">Pricing Request Tracker</div><div class="page-sub">Live response time monitoring — synced from Google Sheets</div></div>' +
-        '<div class="header-right">' +
-          '<span class="last-updated" id="last-updated">Loading…</span>' +
-          '' +
-        '</div>' +
-      '</div>' +
-      '<div id="error-container"></div>' +
-      '<div id="content"><div class="loading-screen"><div class="spinner-lg"></div><div class="loading-text">Fetching data from Google Sheets…</div></div></div>' +
-    '</div>';
-}
-
-// ─────────────────────────────────────────────
-// DATA LOADING
-// ─────────────────────────────────────────────
-async function loadData(sheetId) {
-  if (!sheetId) sheetId = localStorage.getItem(STORAGE_KEY);
-  if (!sheetId) { showSetup(); return; }
-
-  clearError();
-  var url = 'https://docs.google.com/spreadsheets/d/' + sheetId + '/gviz/tq?tqx=out:csv&sheet=Tracker';
-
+ 
+function resolveThread(threadId) {
   try {
-    var res = await fetch(url);
-    if (res.status === 401 || res.status === 403) throw new Error('Sheet is not public. Open the sheet → Share → Anyone with the link → Viewer.');
-    if (!res.ok) throw new Error('Could not reach the sheet (HTTP ' + res.status + '). Check your Sheet ID.');
-    var csv = await res.text();
-    if (csv.includes('<!DOCTYPE') || csv.includes('<html')) throw new Error('Sheet not found or not publicly accessible. Double-check the Sheet ID and sharing settings.');
-
-    var rows = parseCSV(csv);
-    if (rows.length < 2) throw new Error('Sheet appears empty — make sure you\'ve run backfillPricingRequests() in Apps Script.');
-
-    allData = [];
-    for (var i = 1; i < rows.length; i++) {
-      var r = rows[i];
-      if (!r[1]) continue;
-      var hrs = r[6] !== '' ? parseFloat(r[6]) : null;
-      var raw = (r[7] || '').toLowerCase();
-      var status = raw.indexOf('on time') !== -1 ? 'on-time' : raw.indexOf('delayed') !== -1 ? 'delayed' : raw.indexOf('overdue') !== -1 ? 'overdue' : 'pending';
-      allData.push({ client:r[1]||'Unknown', received:r[2]||'', subject:r[3]||'', link:r[4]||'', replied:r[5]||null, responseHrs:hrs, status:status });
-    }
-
-    render();
-    scheduleRefresh(sheetId);
-
-  } catch(e) {
-    showError(e.message);
-    document.getElementById('content').innerHTML = '<div class="empty-state">Could not load data. Check the error above.</div>';
+    var thread = GmailApp.getThreadById(threadId);
+    if (!thread) throw new Error("Thread not found");
+ 
+    // Swap labels
+    var nudgeLabel    = getOrCreateLabel(NUDGE_LABEL);
+    var needsLabel    = getOrCreateLabel(LABEL_NAME);
+    var resolvedLabel = getOrCreateLabel(RESOLVED_LABEL);
+    thread.removeLabel(nudgeLabel);
+    thread.removeLabel(needsLabel);
+    thread.addLabel(resolvedLabel);
+ 
+    // Mark as resolved in the sheet
+    markResolvedInSheet(threadId);
+ 
+    return HtmlService.createHtmlOutput(
+      '<div style="font-family:sans-serif;max-width:500px;margin:4rem auto;text-align:center;padding:2rem;">' +
+      '<div style="font-size:48px;margin-bottom:16px;">✅</div>' +
+      '<h2 style="color:#0f1e3c;margin-bottom:8px;">Marked as Resolved</h2>' +
+      '<p style="color:#64748b;font-size:14px;">This pricing request has been resolved. No more nudges will be sent.</p>' +
+      '<a href="https://mail.google.com/mail/u/0/#inbox/' + threadId + '" style="display:inline-block;margin-top:24px;background:#2563eb;color:#fff;padding:10px 20px;border-radius:7px;text-decoration:none;font-size:14px;font-weight:600;">View thread in Gmail →</a>' +
+      '</div>'
+    );
+  } catch(err) {
+    return HtmlService.createHtmlOutput(
+      '<div style="font-family:sans-serif;max-width:500px;margin:4rem auto;text-align:center;padding:2rem;">' +
+      '<h2 style="color:#dc2626;">Something went wrong</h2>' +
+      '<p style="color:#64748b;font-size:14px;">' + err.message + '</p>' +
+      '</div>'
+    );
   }
 }
-
-function scheduleRefresh(sheetId) {
-  if (refreshTimer) clearTimeout(refreshTimer);
-  if (countdownTimer) clearInterval(countdownTimer);
-  nextRefresh = Date.now() + REFRESH_INTERVAL;
-  refreshTimer = setTimeout(function() { loadData(sheetId); }, REFRESH_INTERVAL);
-  countdownTimer = setInterval(function() {
-    var secs = Math.max(0, Math.round((nextRefresh - Date.now()) / 1000));
-    var el = document.getElementById('refresh-indicator');
-    if (el) el.textContent = 'refreshes in ' + (secs >= 60 ? Math.floor(secs/60) + 'm' : secs + 's');
-  }, 1000);
-}
-
-function manualRefresh() {
-  var id = localStorage.getItem(STORAGE_KEY);
-  if (id) loadData(id);
-}
-
-function changeSheet() {
-  localStorage.removeItem(STORAGE_KEY);
-  if (refreshTimer) clearTimeout(refreshTimer);
-  if (countdownTimer) clearInterval(countdownTimer);
-  showSetup();
-}
-
-// ─────────────────────────────────────────────
-// RENDER
-// ─────────────────────────────────────────────
-function render() {
-  var replied  = allData.filter(function(d){ return d.responseHrs !== null; });
-  var onTime   = allData.filter(function(d){ return d.status === 'on-time'; }).length;
-  var delayed  = allData.filter(function(d){ return d.status === 'delayed'; }).length;
-  var overdue  = allData.filter(function(d){ return d.status === 'overdue'; }).length;
-  var pending  = allData.filter(function(d){ return d.status === 'pending'; }).length;
-  var avgHrs   = replied.length ? Math.round(replied.reduce(function(s,d){ return s+d.responseHrs; },0)/replied.length*10)/10 : 0;
-  var slaRate  = replied.length ? Math.round(onTime/replied.length*100) : 0;
-
-  var barData = replied.slice().sort(function(a,b){ return b.responseHrs-a.responseHrs; }).slice(0,7);
-  var maxH = barData.length ? barData[0].responseHrs : 1;
-  var bars = barData.map(function(d) {
-    return '<div class="bar-item">' +
-      '<div class="bar-name" title="'+esc(d.client)+'">'+esc(d.client)+'</div>' +
-      '<div class="bar-track"><div class="bar-fill" style="width:'+Math.round(d.responseHrs/maxH*100)+'%;background:'+STATUS_COLORS[d.status]+';"></div></div>' +
-      '<div class="bar-num">'+d.responseHrs+'h</div></div>';
-  }).join('');
-
-  var legend = [['On time',onTime,'on-time'],['Delayed',delayed,'delayed'],['Overdue',overdue,'overdue'],['Pending',pending,'pending']].map(function(l) {
-    return '<div class="legend-row"><div class="legend-dot" style="background:'+STATUS_COLORS[l[2]]+'"></div>'+l[0]+'<span class="legend-count">'+l[1]+'</span></div>';
-  }).join('');
-
-  document.getElementById('content').innerHTML =
-    '<div class="stats-grid">'+
-      stat(true, 'Total requests', allData.length, 'all time', null)+
-      stat(false, 'Avg response time', avgHrs+'h', 'replied emails', null)+
-      stat(false, 'SLA rate (≤4h)', slaRate+'%', 'on-time replies', slaRate>=80?'good':slaRate>=50?'warn':'bad')+
-      stat(false, 'Pending', pending, 'awaiting reply', pending>0?'warn':null)+
-    '</div>'+
-    '<div class="charts-row">'+
-      '<div class="card"><div class="card-title">Response time by client <span class="card-sub">slowest first</span></div>'+(bars||'<div class="empty-state">No replied emails yet</div>')+'</div>'+
-      '<div class="card"><div class="card-title">Status breakdown</div><div class="donut-wrap"><canvas class="donut-canvas" id="donut-chart"></canvas><div>'+legend+'</div></div></div>'+
-    '</div>'+
-    '<div class="table-card">'+
-      '<div class="table-header">'+
-        '<div class="table-title">All pricing requests</div>'+
-        '<div class="filter-row">'+
-          fBtn('all','All ('+allData.length+')')+fBtn('on-time','On time ('+onTime+')')+
-          fBtn('delayed','Delayed ('+delayed+')')+fBtn('overdue','Overdue ('+overdue+')')+fBtn('pending','Pending ('+pending+')')+
-        '</div>'+
-      '</div>'+
-      '<div id="table-body"></div>'+
-    '</div>';
-
-  var el = document.getElementById('last-updated');
-  if (el) el.textContent = 'Updated ' + new Date().toLocaleTimeString();
-  renderTable();
-  drawDonut(onTime, delayed, overdue, pending);
-}
-
-function stat(dark, label, val, sub, delta) {
-  var d = delta ? '<div class="delta '+delta+'">'+(delta==='good'?'↑ good':delta==='warn'?'⚠ watch':'↓ low')+'</div>' : '';
-  return '<div class="stat-card'+(dark?' dark':'')+'"><div class="stat-label">'+label+'</div><div class="stat-value">'+val+'</div><div class="stat-sub">'+sub+'</div>'+d+'</div>';
-}
-
-function fBtn(f, label) {
-  return '<button class="filter-btn'+(activeFilter===f?' active':'')+'" onclick="setFilter(\''+f+'\')">'+label+'</button>';
-}
-
-function setFilter(f) {
-  activeFilter = f;
-  document.querySelectorAll('.filter-btn').forEach(function(b){ b.classList.toggle('active', b.textContent.trim().startsWith(f==='all'?'All':f==='on-time'?'On time':f==='delayed'?'Delayed':f==='overdue'?'Overdue':'Pending')); });
-  renderTable();
-}
-
-function renderTable() {
-  var filtered = activeFilter === 'all' ? allData : allData.filter(function(d){ return d.status === activeFilter; });
-  var sorted = filtered.slice().sort(function(a,b){ return new Date(b.received)-new Date(a.received); });
-  if (!sorted.length) { document.getElementById('table-body').innerHTML = '<div class="empty-state">No emails match this filter</div>'; return; }
-  var rows = sorted.map(function(d) {
-    var recv = d.received ? new Date(d.received).toLocaleDateString('en-CA',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
-    var subj = d.subject.replace(/^re:\s*/i,'');
-    var subjEl = d.link ? '<a href="'+esc(d.link)+'" target="_blank" style="color:var(--text-muted);text-decoration:none;" title="'+esc(d.subject)+'">'+esc(subj)+'</a>' : esc(subj);
-    return '<tr>'+
-      '<td style="font-weight:600;">'+esc(d.client)+'</td>'+
-      '<td class="subject-cell">'+subjEl+'</td>'+
-      '<td style="white-space:nowrap;color:#64748b;font-size:12px;">'+recv+'</td>'+
-      '<td style="font-weight:500;font-variant-numeric:tabular-nums;">'+(d.responseHrs!==null?d.responseHrs+'h':'—')+'</td>'+
-      '<td><span class="pill '+d.status+'">'+STATUS_LABELS[d.status]+'</span></td>'+
-    '</tr>';
-  }).join('');
-  document.getElementById('table-body').innerHTML =
-    '<table class="data-table"><thead><tr><th>Client</th><th>Subject</th><th>Received</th><th>Response time</th><th>Status</th></tr></thead><tbody>'+rows+'</tbody></table>';
-}
-
-function drawDonut(onTime, delayed, overdue, pending) {
-  setTimeout(function() {
-    var ctx = document.getElementById('donut-chart');
-    if (!ctx) return;
-    if (donutChart) { donutChart.destroy(); donutChart = null; }
-    donutChart = new Chart(ctx, {
-      type: 'doughnut',
-      data: { datasets: [{ data:[onTime,delayed,overdue,pending], backgroundColor:['#16a34a','#d97706','#dc2626','#2563eb'], borderWidth:0, hoverOffset:4 }] },
-      options: { cutout:'68%', plugins:{ legend:{display:false} }, animation:{ duration:600 } }
-    });
-  }, 50);
-}
-
-// ─────────────────────────────────────────────
-// UTILS
-// ─────────────────────────────────────────────
-function extractSheetId(val) {
-  var match = val.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
-  return match ? match[1] : val.trim();
-}
-
-function parseCSV(text) {
-  var rows = []; var lines = text.split('\n');
-  for (var i = 0; i < lines.length; i++) {
-    var line = lines[i].trim(); if (!line) continue;
-    var cols = []; var cur = ''; var inQ = false;
-    for (var j = 0; j < line.length; j++) {
-      var ch = line[j];
-      if (ch === '"') inQ = !inQ;
-      else if (ch === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
-      else cur += ch;
+ 
+function markResolvedInSheet(threadId) {
+  var sheet = getOrCreateSheet();
+  var data  = sheet.getDataRange().getValues();
+  for (var r = 1; r < data.length; r++) {
+    if (data[r][0] === threadId) {
+      sheet.getRange(r + 1, 8).setValue("✅ Resolved");
+      sheet.getRange(r + 1, 9).setValue(Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "MM/dd/yyyy HH:mm"));
+      return;
     }
-    cols.push(cur.trim()); rows.push(cols);
   }
-  return rows;
+}
+ 
+// ============================================================
+// MORNING DIGEST
+// ============================================================
+function runMorningDigest() {
+  var label   = getOrCreateLabel(LABEL_NAME);
+  var threads = GmailApp.search("in:inbox is:unread newer_than:1d");
+ 
+  if (threads.length === 0) {
+    GmailApp.sendEmail(MY_EMAIL, "📬 Morning Digest — No new emails today!", "You're all caught up.");
+    return;
+  }
+ 
+  var emailRows = "", plainRows = "", urgentRows = "";
+  var urgentKW = ["urgent","asap","immediately","critical","action required","deadline","overdue"];
+ 
+  threads.forEach(function(thread, i) {
+    var messages = thread.getMessages();
+    var lastMsg  = messages[messages.length - 1];
+    var sender   = lastMsg.getFrom();
+    var subject  = thread.getFirstMessageSubject();
+    var date     = lastMsg.getDate().toLocaleString();
+    var snippet  = lastMsg.getPlainBody().replace(/\s+/g, " ").trim().substring(0, 120) + "...";
+    var link     = "https://mail.google.com/mail/u/0/#inbox/" + thread.getId();
+    var isUrgent = urgentKW.some(function(kw){ return subject.toLowerCase().indexOf(kw) !== -1; });
+    var isPricing = subject.toLowerCase().indexOf("pricing request") !== -1;
+ 
+    thread.addLabel(label);
+    if (isPricing) trackPricingRequest(thread, messages);
+ 
+    emailRows +=
+      '<tr style="border-bottom:1px solid #eee;">' +
+      '<td style="padding:12px 8px;font-size:14px;color:#111;">' + sender + '</td>' +
+      '<td style="padding:12px 8px;font-size:14px;">' +
+        '<a href="' + link + '" style="color:#1a73e8;text-decoration:none;font-weight:500;">' + subject + '</a>' +
+        (isUrgent  ? ' <span style="background:#fce8e6;color:#c5221f;font-size:11px;padding:2px 6px;border-radius:4px;font-weight:500;">URGENT</span>' : '') +
+        (isPricing ? ' <span style="background:#e6f4ea;color:#137333;font-size:11px;padding:2px 6px;border-radius:4px;font-weight:500;">PRICING</span>' : '') +
+      '</td>' +
+      '<td style="padding:12px 8px;font-size:12px;color:#666;white-space:nowrap;">' + date + '</td>' +
+      '</tr>' +
+      '<tr><td colspan="3" style="padding:0 8px 12px;font-size:13px;color:#666;">' + snippet + '</td></tr>';
+ 
+    plainRows += (i+1) + ". " + subject + "\n   From: " + sender + "\n   Date: " + date + "\n   Link: " + link + "\n\n";
+    if (isUrgent) urgentRows += "• " + subject + " — " + sender + "\n";
+  });
+ 
+  var today = new Date().toLocaleDateString("en-CA", {weekday:"long",year:"numeric",month:"long",day:"numeric"});
+  var htmlBody =
+    '<div style="font-family:sans-serif;max-width:680px;margin:0 auto;">' +
+    '<div style="background:#1a73e8;padding:20px 24px;border-radius:8px 8px 0 0;">' +
+    '<h2 style="color:#fff;margin:0;font-size:20px;">📬 Morning Email Digest</h2>' +
+    '<p style="color:rgba(255,255,255,0.8);margin:4px 0 0;font-size:14px;">' + today + '</p></div>' +
+    '<div style="background:#f8f9fa;padding:16px 24px;">' +
+    '<p style="margin:0;font-size:14px;color:#444;">You have <strong>' + threads.length + ' unread email(s)</strong> that need attention.</p></div>' +
+    '<table style="width:100%;border-collapse:collapse;background:#fff;">' +
+    '<thead><tr style="background:#f1f3f4;">' +
+    '<th style="padding:10px 8px;text-align:left;font-size:12px;color:#444;">FROM</th>' +
+    '<th style="padding:10px 8px;text-align:left;font-size:12px;color:#444;">SUBJECT</th>' +
+    '<th style="padding:10px 8px;text-align:left;font-size:12px;color:#444;">DATE</th>' +
+    '</tr></thead><tbody>' + emailRows + '</tbody></table>' +
+    '<div style="padding:16px 24px;background:#f8f9fa;border-radius:0 0 8px 8px;">' +
+    '<a href="https://mail.google.com/mail/u/0/#label/' + encodeURIComponent(LABEL_NAME) + '" style="background:#1a73e8;color:#fff;padding:10px 20px;border-radius:4px;text-decoration:none;font-size:14px;font-weight:500;">Open inbox →</a>' +
+    '</div></div>';
+ 
+  GmailApp.sendEmail(MY_EMAIL, "📬 Morning Digest — " + threads.length + " emails need your reply (" + today + ")",
+    "Good morning!\n\n" + (urgentRows ? "🚨 URGENT:\n" + urgentRows + "\n" : "") + plainRows,
+    {htmlBody: htmlBody, name: "Gmail Digest"});
+}
+ 
+// ============================================================
+// NUDGE — runs every 2 hours, keeps firing until resolved
+// ============================================================
+function checkForOverdueEmails() {
+  var webAppUrl   = getWebAppUrl(); // set this after deploying as web app
+  var nudgeLabel  = getOrCreateLabel(NUDGE_LABEL);
+  var needsLabel  = getOrCreateLabel(LABEL_NAME);
+  var resolvedLbl = getOrCreateLabel(RESOLVED_LABEL);
+  var threads     = GmailApp.search('label:"' + LABEL_NAME + '" is:unread');
+  var now         = new Date();
+  var overdue     = [];
+ 
+  threads.forEach(function(thread) {
+    var messages    = thread.getMessages();
+    var lastMsg     = messages[messages.length - 1];
+    var hoursOld    = (now - lastMsg.getDate()) / (1000 * 60 * 60);
+    var lastSender  = lastMsg.getFrom();
+    var youReplied  = RESPONDERS.some(function(r){ return lastSender.indexOf(r) !== -1; });
+    var subject     = thread.getFirstMessageSubject();
+    var threadId    = thread.getId();
+    var isPricing   = subject.toLowerCase().indexOf("pricing request") !== -1;
+ 
+    // Check if already manually resolved
+    var labels      = thread.getLabels().map(function(l){ return l.getName(); });
+    var isResolved  = labels.indexOf(RESOLVED_LABEL) !== -1;
+ 
+    if (isResolved) {
+      // Already resolved — clean up and skip
+      thread.removeLabel(nudgeLabel);
+      thread.removeLabel(needsLabel);
+      return;
+    }
+ 
+    if (youReplied) {
+      // Auto-resolve when both you AND the client have been responded to
+      // Just clean labels — still require manual "mark resolved" for pricing requests
+      if (!isPricing) {
+        thread.removeLabel(nudgeLabel);
+        thread.removeLabel(needsLabel);
+      } else {
+        // For pricing requests: flag as replied but keep nudging until manually resolved
+        thread.addLabel(nudgeLabel);
+        if (isPricing) trackPricingRequest(thread, messages);
+        overdue.push({subject: subject, sender: lastMsg.getFrom(), hoursAgo: Math.floor(hoursOld), link: "https://mail.google.com/mail/u/0/#inbox/" + threadId, threadId: threadId, isPricing: true, replied: true});
+      }
+    } else if (hoursOld >= NUDGE_HOURS) {
+      thread.addLabel(nudgeLabel);
+      overdue.push({subject: subject, sender: lastMsg.getFrom(), hoursAgo: Math.floor(hoursOld), link: "https://mail.google.com/mail/u/0/#inbox/" + threadId, threadId: threadId, isPricing: isPricing, replied: false});
+    }
+  });
+ 
+  if (overdue.length === 0) return;
+ 
+  var nudgeRows = "", plainNudge = "";
+  overdue.forEach(function(e) {
+    var resolveBtn = "";
+    if (webAppUrl) {
+      var resolveUrl = webAppUrl + "?resolve=" + e.threadId;
+      resolveBtn = ' <a href="' + resolveUrl + '" style="display:inline-block;background:#16a34a;color:#fff;font-size:11px;font-weight:600;padding:3px 10px;border-radius:4px;text-decoration:none;margin-left:8px;">Mark as Resolved</a>';
+    }
+    var repliedBadge = e.replied
+      ? ' <span style="background:#dcfce7;color:#16a34a;font-size:11px;padding:2px 6px;border-radius:4px;font-weight:500;">Replied ✓</span>'
+      : '';
+ 
+    nudgeRows +=
+      '<tr style="border-bottom:1px solid #eee;">' +
+      '<td style="padding:12px 8px;font-size:14px;color:#111;">' + e.sender + '</td>' +
+      '<td style="padding:12px 8px;font-size:14px;">' +
+        '<a href="' + e.link + '" style="color:#1a73e8;text-decoration:none;font-weight:500;">' + e.subject + '</a>' +
+        repliedBadge + resolveBtn +
+      '</td>' +
+      '<td style="padding:12px 8px;font-size:12px;white-space:nowrap;color:#c5221f;font-weight:500;">' + e.hoursAgo + 'h ago</td>' +
+      '</tr>';
+    plainNudge += "• " + e.subject + " (" + e.hoursAgo + "h ago)\n  " + e.link + "\n\n";
+  });
+ 
+  var nudgeHtml =
+    '<div style="font-family:sans-serif;max-width:680px;margin:0 auto;">' +
+    '<div style="background:#e37400;padding:20px 24px;border-radius:8px 8px 0 0;">' +
+    '<h2 style="color:#fff;margin:0;font-size:20px;">⏰ ' + overdue.length + ' email(s) need your attention</h2>' +
+    '<p style="color:rgba(255,255,255,0.85);margin:4px 0 0;font-size:14px;">These will keep appearing until marked as resolved</p></div>' +
+    '<table style="width:100%;border-collapse:collapse;background:#fff;">' +
+    '<thead><tr style="background:#f1f3f4;">' +
+    '<th style="padding:10px 8px;text-align:left;font-size:12px;color:#444;">FROM</th>' +
+    '<th style="padding:10px 8px;text-align:left;font-size:12px;color:#444;">SUBJECT</th>' +
+    '<th style="padding:10px 8px;text-align:left;font-size:12px;color:#444;">WAITING</th>' +
+    '</tr></thead><tbody>' + nudgeRows + '</tbody></table>' +
+    '<div style="padding:16px 24px;background:#fff7e6;border-radius:0 0 8px 8px;display:flex;gap:10px;align-items:center;">' +
+    '<a href="https://mail.google.com/mail/u/0/#label/' + encodeURIComponent(NUDGE_LABEL) + '" style="background:#e37400;color:#fff;padding:10px 20px;border-radius:4px;text-decoration:none;font-size:14px;font-weight:500;">View all in Gmail →</a>' +
+    '<span style="font-size:12px;color:#92400e;">Click "Mark as Resolved" next to each email to stop nudges</span>' +
+    '</div></div>';
+ 
+  GmailApp.sendEmail(MY_EMAIL, "⏰ " + overdue.length + " email(s) still need resolution",
+    "These emails need to be resolved:\n\n" + plainNudge,
+    {htmlBody: nudgeHtml, name: "Gmail Nudge"});
+}
+ 
+// ============================================================
+// PRICING TRACKER
+// ============================================================
+function trackPricingRequest(thread, messages) {
+  var sheet    = getOrCreateSheet();
+  var threadId = thread.getId();
+  var data     = sheet.getDataRange().getValues();
+ 
+  for (var r = 1; r < data.length; r++) {
+    if (data[r][0] === threadId) {
+      if (!data[r][5] && isRepliedByMe(messages)) {
+        var replyMsg = getMyFirstReply(messages);
+        if (replyMsg) {
+          var hrs    = Math.round(((replyMsg.getDate() - new Date(data[r][2])) / (1000*60*60)) * 10) / 10;
+          var status = hrs <= 4 ? "✅ On Time" : hrs <= 24 ? "⚠️ Delayed" : "❌ Overdue";
+          sheet.getRange(r+1, 6).setValue(Utilities.formatDate(replyMsg.getDate(), Session.getScriptTimeZone(), "MM/dd/yyyy HH:mm"));
+          sheet.getRange(r+1, 7).setValue(hrs);
+          sheet.getRange(r+1, 8).setValue(status);
+        }
+      }
+      return;
+    }
+  }
+ 
+  var firstMsg    = messages[0];
+  var subject     = thread.getFirstMessageSubject();
+  var parts       = subject.replace(/re:\s*/i, "").split(" - ");
+  var clientName  = parts.length >= 2 ? parts[1].trim() : firstMsg.getFrom();
+  var receivedDate = firstMsg.getDate();
+  var replyDate   = "", responseHrs = "", status = "⏳ Pending";
+ 
+  if (isRepliedByMe(messages)) {
+    var replyMsg = getMyFirstReply(messages);
+    if (replyMsg) {
+      replyDate    = Utilities.formatDate(replyMsg.getDate(), Session.getScriptTimeZone(), "MM/dd/yyyy HH:mm");
+      responseHrs  = Math.round(((replyMsg.getDate() - receivedDate) / (1000*60*60)) * 10) / 10;
+      status       = responseHrs <= 4 ? "✅ On Time" : responseHrs <= 24 ? "⚠️ Delayed" : "❌ Overdue";
+    }
+  }
+ 
+  sheet.appendRow([
+    threadId, clientName,
+    Utilities.formatDate(receivedDate, Session.getScriptTimeZone(), "MM/dd/yyyy HH:mm"),
+    subject,
+    "https://mail.google.com/mail/u/0/#inbox/" + threadId,
+    replyDate, responseHrs, status, "" // col 9 = Resolved At
+  ]);
+ 
+  thread.addLabel(getOrCreateLabel(PRICING_LABEL));
+}
+ 
+function backfillPricingRequests() {
+  var threads = GmailApp.search('subject:"pricing request"', 0, 100);
+  threads.forEach(function(t) { trackPricingRequest(t, t.getMessages()); Utilities.sleep(100); });
+  Logger.log("Backfill done — " + threads.length + " threads.");
+}
+ 
+// ============================================================
+// HELPERS
+// ============================================================
+function isRepliedByMe(messages) {
+  for (var i = 1; i < messages.length; i++) {
+    var from = messages[i].getFrom();
+    for (var r = 0; r < RESPONDERS.length; r++) { if (from.indexOf(RESPONDERS[r]) !== -1) return true; }
+  }
+  return false;
+}
+ 
+function getMyFirstReply(messages) {
+  for (var i = 1; i < messages.length; i++) {
+    var from = messages[i].getFrom();
+    for (var r = 0; r < RESPONDERS.length; r++) { if (from.indexOf(RESPONDERS[r]) !== -1) return messages[i]; }
+  }
+  return null;
+}
+ 
+function getOrCreateLabel(name) {
+  return GmailApp.getUserLabelByName(name) || GmailApp.createLabel(name);
+}
+ 
+function getOrCreateSheet() {
+  var files = DriveApp.getFilesByName(SHEET_NAME);
+  var ss    = files.hasNext() ? SpreadsheetApp.open(files.next()) : SpreadsheetApp.create(SHEET_NAME);
+  var sheet = ss.getSheetByName("Tracker");
+  if (!sheet) {
+    sheet = ss.getActiveSheet().setName("Tracker");
+    var h = ["Thread ID","Client","Received","Subject","Gmail Link","Replied At","Response Time (hrs)","Status","Resolved At"];
+    sheet.appendRow(h);
+    sheet.getRange(1,1,1,9).setFontWeight("bold").setBackground("#1a73e8").setFontColor("#ffffff");
+    sheet.setColumnWidth(4, 300);
+    sheet.setFrozenRows(1);
+  }
+  return sheet;
+}
+ 
+// ============================================================
+// WEB APP URL — paste your deployed web app URL here
+// after deploying: Extensions → Apps Script → Deploy → New deployment
+// ============================================================
+function getWebAppUrl() {
+  // PASTE YOUR WEB APP URL HERE after deploying
+  // e.g. return "https://script.google.com/macros/s/YOUR_ID/exec";
+  return ""; // leave empty until you deploy as web app
+}
+ 
+// ============================================================
+// SETUP — run ONCE
+// ============================================================
+function setupTriggers() {
+  ScriptApp.getProjectTriggers().forEach(function(t) {
+    var fn = t.getHandlerFunction();
+    if (fn === "runMorningDigest" || fn === "checkForOverdueEmails") ScriptApp.deleteTrigger(t);
+  });
+  ScriptApp.newTrigger("runMorningDigest").timeBased().everyDays(1).atHour(DIGEST_HOUR).create();
+  ScriptApp.newTrigger("checkForOverdueEmails").timeBased().everyHours(NUDGE_INTERVAL).create();
+  Logger.log("Triggers created. Morning digest at " + DIGEST_HOUR + ":00, nudge every " + NUDGE_INTERVAL + "h.");
 }
 
-function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function showError(msg) { var el = document.getElementById('error-container'); if (el) el.innerHTML = '<div class="error-banner">'+msg+'</div>'; }
-function clearError() { var el = document.getElementById('error-container'); if (el) el.innerHTML = ''; }
-</script>
-</body>
-</html>
