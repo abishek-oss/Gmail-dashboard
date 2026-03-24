@@ -130,6 +130,10 @@
     .spinner-lg { width: 36px; height: 36px; border: 3px solid #e2e8f0; border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
     .loading-text { font-size: 14px; color: var(--text-muted); }
     @keyframes spin { to { transform: rotate(360deg); } }
+    .dash-tab { font-size: 13px; font-weight: 500; padding: 8px 20px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.12s; }
+    .dash-tab:hover { color: var(--text); }
+    .dash-tab.active { color: var(--navy); border-bottom-color: var(--navy); font-weight: 600; }
+    .requester-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
     @media (max-width: 768px) { .stats-grid { grid-template-columns: repeat(2,1fr); } .charts-row { grid-template-columns: 1fr; } .filters-row { flex-direction: column; align-items: stretch; } }
   </style>
 </head>
@@ -203,7 +207,7 @@ async function loadData(sheetId) {
       var hrs = r[6] !== '' ? parseFloat(r[6]) : null;
       var raw = (r[7] || '').toLowerCase();
       var status = raw.indexOf('resolved') !== -1 ? 'resolved' : raw.indexOf('on time') !== -1 ? 'on-time' : raw.indexOf('delayed') !== -1 ? 'delayed' : raw.indexOf('overdue') !== -1 ? 'overdue' : 'pending';
-      allData.push({ client:r[1]||'Unknown', received:r[2]||'', subject:r[3]||'', link:r[4]||'', replied:r[5]||null, responseHrs:hrs, status:status, resolvedAt:r[8]||'' });
+      allData.push({ client:r[1]||'Unknown', received:r[2]||'', subject:r[3]||'', link:r[4]||'', replied:r[5]||null, responseHrs:hrs, status:status, resolvedAt:r[8]||'', requestedBy:r[9]||'' });
     }
     render();
     scheduleRefresh(sheetId);
@@ -317,6 +321,12 @@ function render() {
       '</div>' +
     '</div>' +
 
+    // ── TABS
+    '<div style="display:flex;gap:0;margin-bottom:1.5rem;border-bottom:1px solid var(--border);">' +
+      '<button id="tab-overview" class="dash-tab active" onclick="switchTab(\'overview\')">📊 Overview</button>' +
+      '<button id="tab-requesters" class="dash-tab" onclick="switchTab(\'requesters\')">👤 By Requester</button>' +
+    '</div>' +
+    '<div id="tab-overview-content">' +
     // ── STATS (pivot to filtered data)
     '<div class="stats-grid">' +
       stat(true,  'Total'+(isFiltered()?' (filtered)':''), filtered.length, isFiltered() ? allData.length+' total' : 'all time', null) +
@@ -342,7 +352,9 @@ function render() {
         '</div>' +
       '</div>' +
       '<div id="table-body"></div>' +
-    '</div>';
+    '</div>' +
+    '</div>' +
+    '<div id="tab-requesters-content" style="display:none;"><div id="requester-table"></div></div>';
 
   var el = document.getElementById('last-updated');
   if (el) el.textContent = 'Updated ' + new Date().toLocaleTimeString();
@@ -394,6 +406,7 @@ function renderTable(filtered) {
       '<td style="white-space:nowrap;color:#64748b;font-size:12px;">'+recv+'</td>'+
       '<td style="font-weight:500;font-variant-numeric:tabular-nums;">'+(d.responseHrs!==null?d.responseHrs+'h':'—')+'</td>'+
       '<td><span class="pill '+d.status+'">'+STATUS_LABELS[d.status]+'</span></td>'+
+      '<td style="font-size:12px;color:#64748b;">'+(d.requestedBy?esc(d.requestedBy):'—')+'</td>'+
       '<td style="font-size:12px;color:#64748b;white-space:nowrap;">'+(d.resolvedAt||'—')+'</td>'+
     '</tr>';
   }).join('');
@@ -406,7 +419,7 @@ function renderTable(filtered) {
       '<th class="'+sc('received')+'" onclick="sortBy(\'received\')">Received <span class="sort-icon">'+si('received')+'</span></th>' +
       '<th class="'+sc('responseHrs')+'" onclick="sortBy(\'responseHrs\')">Response time <span class="sort-icon">'+si('responseHrs')+'</span></th>' +
       '<th>Status</th>' +
-      '<th>Resolved at</th>' +
+      '<th>Requested by</th><th>Resolved at</th>' +
     '</tr></thead>' +
     '<tbody>'+rows+'</tbody></table>';
 }
@@ -428,6 +441,70 @@ function drawDonut(onTime, delayed, overdue, pending, resolved) {
       options: { cutout:'68%', plugins:{ legend:{display:false} }, animation:{ duration:600 } }
     });
   }, 50);
+}
+
+function switchTab(tab) {
+  document.getElementById('tab-overview').classList.toggle('active', tab==='overview');
+  document.getElementById('tab-requesters').classList.toggle('active', tab==='requesters');
+  document.getElementById('tab-overview-content').style.display = tab==='overview' ? '' : 'none';
+  document.getElementById('tab-requesters-content').style.display = tab==='requesters' ? '' : 'none';
+  if (tab === 'requesters') renderRequesters();
+}
+
+function renderRequesters() {
+  var filtered = getFilteredData();
+  var map = {};
+  filtered.forEach(function(d) {
+    var name = d.requestedBy || 'Unknown';
+    if (!map[name]) map[name] = { name:name, total:0, replied:[], onTime:0, delayed:0, overdue:0, pending:0, resolved:0 };
+    map[name].total++;
+    if (d.responseHrs !== null) map[name].replied.push(d.responseHrs);
+    if (d.status==='on-time')  map[name].onTime++;
+    if (d.status==='delayed')  map[name].delayed++;
+    if (d.status==='overdue')  map[name].overdue++;
+    if (d.status==='pending')  map[name].pending++;
+    if (d.status==='resolved') map[name].resolved++;
+  });
+  var rows = Object.values(map).sort(function(a,b){ return b.total-a.total; });
+  if (!rows.length) { document.getElementById('requester-table').innerHTML='<div class="empty-state" style="padding:3rem">No data in current filter range</div>'; return; }
+  var tableRows = rows.map(function(r) {
+    var avg     = r.replied.length ? Math.round(r.replied.reduce(function(s,v){return s+v;},0)/r.replied.length*10)/10 : null;
+    var sla     = r.replied.length ? Math.round(r.onTime/r.replied.length*100) : null;
+    var fastest = r.replied.length ? Math.min.apply(null,r.replied) : null;
+    var slowest = r.replied.length ? Math.max.apply(null,r.replied) : null;
+    var slaColor = sla!==null ? (sla>=80?'var(--green)':sla>=50?'var(--amber)':'var(--red)') : '';
+    var breakdown = [
+      r.onTime   ? '<span style="color:var(--green);">'+r.onTime+' on time</span>'   : '',
+      r.delayed  ? '<span style="color:var(--amber);">'+r.delayed+' delayed</span>'  : '',
+      r.overdue  ? '<span style="color:var(--red);">'+r.overdue+' overdue</span>'    : '',
+      r.pending  ? '<span style="color:var(--blue);">'+r.pending+' pending</span>'   : '',
+      r.resolved ? '<span style="color:#7c3aed;">'+r.resolved+' resolved</span>'     : ''
+    ].filter(Boolean).join(' &nbsp;');
+    return '<tr>'+
+      '<td style="font-weight:600;">'+esc(r.name)+'</td>'+
+      '<td style="text-align:center;font-weight:700;font-size:16px;">'+r.total+'</td>'+
+      '<td style="text-align:center;">'+(avg!==null?avg+'h':'—')+'</td>'+
+      '<td style="text-align:center;color:var(--green);">'+(fastest!==null?fastest+'h':'—')+'</td>'+
+      '<td style="text-align:center;color:var(--red);">'+(slowest!==null?slowest+'h':'—')+'</td>'+
+      '<td style="text-align:center;">'+(sla!==null?'<span style="font-weight:600;color:'+slaColor+'">'+sla+'%</span>':'—')+'</td>'+
+      '<td style="font-size:12px;">'+breakdown+'</td>'+
+    '</tr>';
+  }).join('');
+  document.getElementById('requester-table').innerHTML =
+    '<div class="requester-card">'+
+    '<div style="padding:1rem 1.5rem;border-bottom:1px solid var(--border);font-size:13px;font-weight:600;">Request breakdown by sender'+(isFiltered()?'<span class="filter-badge">Filtered</span>':'')+'</div>'+
+    '<table class="data-table">'+
+    '<thead><tr>'+
+      '<th>Requested by</th>'+
+      '<th style="text-align:center;">Total requests</th>'+
+      '<th style="text-align:center;">Avg response</th>'+
+      '<th style="text-align:center;">Fastest</th>'+
+      '<th style="text-align:center;">Slowest</th>'+
+      '<th style="text-align:center;">SLA rate</th>'+
+      '<th>Breakdown</th>'+
+    '</tr></thead>'+
+    '<tbody>'+tableRows+'</tbody>'+
+    '</table></div>';
 }
 
 function parseCSV(text) {
