@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AMZ Prep — Pricing Intelligence</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg:        #06080f;
+      --bg2:       #0b0f1c;
+      --bg3:       #111827;
+      --surface:   rgba(255,255,255,0.04);
+      --surface2:  rgba(255,255,255,0.07);
+      --border:    rgba(255,255,255,0.08);
+      --border2:   rgba(255,255,255,0.14);
+      --text:      #f0f4ff;
+      --text2:     #8892aa;
+      --text3:     #4a5568;
+      --accent:    #3b82f6;
+      --accent2:   #60a5fa;
+      --glow:      rgba(59,130,246,0.25);
+      --green:     #10b981; --green-dim: rgba(16,185,129,0.15);
+      --amber:     #f59e0b; --amber-dim: rgba(245,158,11,0.15);
+      --red:       #ef4444; --red-dim:   rgba(239,68,68,0.15);
+      --purple:    #8b5cf6; --purple-dim:rgba(139,92,246,0.15);
+      --blue-dim:  rgba(59,130,246,0.15);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── GRID BACKGROUND */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(59,130,246,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(59,130,246,0.03) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── GLOW ORBS */
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(120px);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .orb-1 { width: 600px; height: 600px; background: rgba(59,130,246,0.07); top: -200px; right: -100px; }
+    .orb-2 { width: 400px; height: 400px; background: rgba(139,92,246,0.05); bottom: 0; left: -100px; }
+
+    /* ── NAV */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 2rem; height: 60px;
+      background: rgba(6,8,15,0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-brand {
+      display: flex; align-items: center; gap: 12px;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800; font-size: 16px; color: var(--text);
+      letter-spacing: -0.02em;
+    }
+
+    .nav-logo {
+      width: 32px; height: 32px;
+      background: linear-gradient(135deg, #2563eb, #7c3aed);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 800; color: #fff;
+      box-shadow: 0 0 20px rgba(59,130,246,0.4);
+    }
+
+    .nav-pill {
+      font-size: 11px; font-family: 'DM Mono', monospace;
+      padding: 3px 10px; border-radius: 999px;
+      background: var(--blue-dim); color: var(--accent2);
+      border: 1px solid rgba(59,130,246,0.2);
+      letter-spacing: 0.04em;
+    }
+
+    .nav-right { display: flex; align-items: center; gap: 10px; }
+
+    #refresh-indicator {
+      font-size: 11px; font-family: 'DM Mono', monospace;
+      color: var(--text3); letter-spacing: 0.03em;
+    }
+
+    .btn-refresh {
+      font-size: 12px; font-family: 'DM Sans', sans-serif; font-weight: 500;
+      padding: 7px 16px; border-radius: 8px;
+      border: 1px solid var(--border2);
+      background: var(--surface2); color: var(--text2);
+      cursor: pointer; transition: all 0.2s;
+    }
+    .btn-refresh:hover { background: var(--surface2); color: var(--text); border-color: var(--accent); box-shadow: 0 0 12px var(--glow); }
+
+    /* ── MAIN */
+    .main { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; position: relative; z-index: 1; }
+
+    /* ── PAGE HEADER */
+    .page-header { margin-bottom: 2rem; }
+    .page-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 28px; font-weight: 800;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, #f0f4ff 0%, #8892aa 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .page-sub { font-size: 13px; color: var(--text3); margin-top: 4px; font-family: 'DM Mono', monospace; letter-spacing: 0.02em; }
+    .page-sub span { color: var(--accent2); }
+
+    /* ── FILTERS */
+    .filters-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.5rem;
+      display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap;
+      backdrop-filter: blur(10px);
+    }
+    .filter-group { display: flex; flex-direction: column; gap: 5px; }
+    .filter-label { font-size: 10px; font-family: 'DM Mono', monospace; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text3); }
+    .filter-input {
+      font-size: 13px; font-family: 'DM Sans', sans-serif;
+      padding: 7px 12px; border-radius: 8px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03); color: var(--text);
+      outline: none; min-width: 150px; transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .filter-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--glow); }
+    .filter-input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.6); }
+    .filter-sep { font-size: 12px; color: var(--text3); padding-bottom: 9px; font-family: 'DM Mono', monospace; }
+    .btn-clear-filters {
+      font-size: 12px; padding: 7px 14px; border-radius: 8px;
+      border: 1px solid var(--red-dim); background: var(--red-dim);
+      color: var(--red); cursor: pointer; align-self: flex-end;
+      transition: all 0.2s; font-family: 'DM Sans', sans-serif;
+    }
+    .btn-clear-filters:hover { background: rgba(239,68,68,0.25); }
+    .filter-active-badge {
+      font-size: 10px; font-family: 'DM Mono', monospace;
+      padding: 2px 8px; border-radius: 999px;
+      background: var(--blue-dim); color: var(--accent2);
+      border: 1px solid rgba(59,130,246,0.25); margin-left: 8px;
+    }
+
+    /* ── 3D STAT CARDS */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0,1fr));
+      gap: 14px;
+      margin-bottom: 1.5rem;
+      perspective: 1200px;
+    }
+
+    .stat-card {
+      position: relative;
+      background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.25rem 1.5rem;
+      cursor: default;
+      transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease;
+      transform-style: preserve-3d;
+      overflow: hidden;
+      animation: cardIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+
+    .stat-card:nth-child(1) { animation-delay: 0.05s; }
+    .stat-card:nth-child(2) { animation-delay: 0.10s; }
+    .stat-card:nth-child(3) { animation-delay: 0.15s; }
+    .stat-card:nth-child(4) { animation-delay: 0.20s; }
+
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(20px) rotateX(-8deg); }
+      to   { opacity: 1; transform: translateY(0) rotateX(0deg); }
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute; inset: 0;
+      border-radius: 16px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .stat-card::after {
+      content: '';
+      position: absolute;
+      bottom: -30px; right: -30px;
+      width: 100px; height: 100px;
+      border-radius: 50%;
+      background: var(--card-glow, rgba(59,130,246,0.1));
+      filter: blur(30px);
+      pointer-events: none;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-6px) rotateX(4deg) rotateY(-2deg) scale(1.02);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 30px var(--card-glow, var(--glow));
+      border-color: var(--border2);
+    }
+
+    .stat-card.primary { --card-glow: rgba(59,130,246,0.2); border-color: rgba(59,130,246,0.2); }
+    .stat-card.success { --card-glow: rgba(16,185,129,0.2); border-color: rgba(16,185,129,0.15); }
+    .stat-card.warning { --card-glow: rgba(245,158,11,0.2); border-color: rgba(245,158,11,0.15); }
+    .stat-card.danger  { --card-glow: rgba(239,68,68,0.2);  border-color: rgba(239,68,68,0.15); }
+
+    .stat-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; margin-bottom: 14px;
+    }
+    .stat-card.primary .stat-icon { background: var(--blue-dim); }
+    .stat-card.success .stat-icon { background: var(--green-dim); }
+    .stat-card.warning .stat-icon { background: var(--amber-dim); }
+    .stat-card.danger  .stat-icon { background: var(--red-dim); }
+
+    .stat-label { font-size: 11px; font-family: 'DM Mono', monospace; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text3); margin-bottom: 6px; }
+    .stat-value { font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 800; letter-spacing: -0.03em; line-height: 1; }
+    .stat-card.primary .stat-value { color: var(--accent2); }
+    .stat-card.success .stat-value { color: var(--green); }
+    .stat-card.warning .stat-value { color: var(--amber); }
+    .stat-card.danger  .stat-value { color: var(--red); }
+    .stat-sub { font-size: 11px; color: var(--text3); margin-top: 6px; font-family: 'DM Mono', monospace; }
+    .stat-delta { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 999px; margin-top: 8px; font-family: 'DM Mono', monospace; }
+    .stat-delta.up   { background: var(--green-dim); color: var(--green); }
+    .stat-delta.mid  { background: var(--amber-dim); color: var(--amber); }
+    .stat-delta.down { background: var(--red-dim);   color: var(--red); }
+
+    /* ── CHARTS ROW */
+    .charts-row { display: grid; grid-template-columns: 1fr 300px; gap: 14px; margin-bottom: 1.5rem; }
+
+    .glass-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      backdrop-filter: blur(10px);
+      position: relative; overflow: hidden;
+    }
+
+    .glass-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    }
+
+    .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
+    .card-title { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: -0.01em; }
+    .card-badge { font-size: 10px; font-family: 'DM Mono', monospace; padding: 3px 8px; border-radius: 999px; background: var(--surface2); color: var(--text3); border: 1px solid var(--border); }
+
+    /* BAR CHART */
+    .bar-item { display: flex; align-items: center; gap: 10px; margin-bottom: 11px; }
+    .bar-name { font-size: 12px; color: var(--text2); width: 120px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: 'DM Sans', sans-serif; }
+    .bar-track { flex: 1; height: 6px; background: rgba(255,255,255,0.05); border-radius: 3px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 3px; transition: width 0.8s cubic-bezier(0.34,1.56,0.64,1); }
+    .bar-num { font-size: 11px; color: var(--text3); width: 40px; text-align: right; font-family: 'DM Mono', monospace; }
+
+    /* DONUT */
+    .donut-wrap { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+    .donut-canvas { width: 140px !important; height: 140px !important; }
+    .donut-legend { width: 100%; }
+    .legend-row { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text2); margin-bottom: 8px; padding: 6px 8px; border-radius: 8px; transition: background 0.15s; }
+    .legend-row:hover { background: var(--surface2); }
+    .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .legend-count { margin-left: auto; font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 500; color: var(--text); }
+
+    /* ── TABS */
+    .tab-bar { display: flex; gap: 0; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border); }
+    .tab-btn {
+      font-size: 13px; font-family: 'DM Sans', sans-serif; font-weight: 500;
+      padding: 10px 20px; border: none; background: transparent;
+      color: var(--text3); cursor: pointer; border-bottom: 2px solid transparent;
+      margin-bottom: -1px; transition: all 0.2s; letter-spacing: 0.01em;
+    }
+    .tab-btn:hover { color: var(--text2); }
+    .tab-btn.active { color: var(--accent2); border-bottom-color: var(--accent); font-weight: 600; }
+
+    /* ── STATUS FILTER PILLS */
+    .status-filters { display: flex; gap: 6px; flex-wrap: wrap; }
+    .sfil {
+      font-size: 11px; font-family: 'DM Mono', monospace;
+      padding: 4px 12px; border-radius: 999px;
+      border: 1px solid var(--border);
+      background: transparent; color: var(--text3);
+      cursor: pointer; transition: all 0.15s;
+    }
+    .sfil:hover { color: var(--text2); border-color: var(--border2); }
+    .sfil.active { background: var(--accent); color: #fff; border-color: var(--accent); box-shadow: 0 0 12px var(--glow); }
+
+    /* ── TABLE */
+    .table-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px; overflow: hidden;
+      backdrop-filter: blur(10px);
+      position: relative;
+    }
+    .table-wrap::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    }
+    .table-topbar {
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+    }
+    .table-title { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead tr { background: rgba(255,255,255,0.02); }
+    th {
+      padding: 10px 16px; text-align: left;
+      font-size: 10px; font-family: 'DM Mono', monospace;
+      text-transform: uppercase; letter-spacing: 0.08em; color: var(--text3);
+      border-bottom: 1px solid var(--border);
+      cursor: pointer; user-select: none; white-space: nowrap;
+      transition: color 0.15s;
+    }
+    th:hover { color: var(--text2); }
+    th.sorted { color: var(--accent2); }
+    td { padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: middle; color: var(--text2); }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,0.02); color: var(--text); }
+    .td-client { font-weight: 600; color: var(--text); font-family: 'DM Sans', sans-serif; }
+    .td-subject { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .td-mono { font-family: 'DM Mono', monospace; font-size: 12px; }
+
+    /* PILLS */
+    .pill { display: inline-flex; align-items: center; font-size: 10px; font-family: 'DM Mono', monospace; font-weight: 500; padding: 3px 9px; border-radius: 999px; letter-spacing: 0.03em; white-space: nowrap; }
+    .pill.on-time  { background: var(--green-dim);  color: var(--green);  border: 1px solid rgba(16,185,129,0.25); }
+    .pill.delayed  { background: var(--amber-dim);  color: var(--amber);  border: 1px solid rgba(245,158,11,0.25); }
+    .pill.overdue  { background: var(--red-dim);    color: var(--red);    border: 1px solid rgba(239,68,68,0.25); }
+    .pill.pending  { background: var(--blue-dim);   color: var(--accent2);border: 1px solid rgba(59,130,246,0.25); }
+    .pill.resolved { background: var(--purple-dim); color: var(--purple); border: 1px solid rgba(139,92,246,0.25); }
+
+    /* REQUESTER TABLE */
+    .req-name { font-weight: 600; color: var(--text); }
+    .req-total { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800; text-align: center; color: var(--accent2); }
+    .req-metric { font-family: 'DM Mono', monospace; font-size: 12px; text-align: center; }
+
+    /* STATES */
+    .empty-state { text-align: center; padding: 4rem 1rem; color: var(--text3); font-family: 'DM Mono', monospace; font-size: 13px; }
+    .loading-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6rem 1rem; gap: 16px; }
+    .spinner { width: 40px; height: 40px; border: 2px solid rgba(255,255,255,0.05); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+    .loading-txt { font-size: 13px; font-family: 'DM Mono', monospace; color: var(--text3); letter-spacing: 0.04em; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .error-banner { background: var(--red-dim); border: 1px solid rgba(239,68,68,0.25); border-radius: 10px; padding: 12px 16px; font-size: 13px; color: var(--red); margin-bottom: 1.25rem; font-family: 'DM Mono', monospace; }
+
+    /* SETUP SCREEN */
+    .setup-wrap { max-width: 520px; margin: 6rem auto; padding: 0 1.5rem; text-align: center; position: relative; z-index: 1; }
+    .setup-logo { width: 64px; height: 64px; background: linear-gradient(135deg, #2563eb, #7c3aed); border-radius: 18px; display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800; color: #fff; margin: 0 auto 1.5rem; box-shadow: 0 0 40px rgba(59,130,246,0.3); }
+    .setup-title { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 8px; }
+    .setup-sub { font-size: 14px; color: var(--text3); margin-bottom: 2rem; line-height: 1.6; }
+    .setup-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 1.75rem; text-align: left; backdrop-filter: blur(10px); }
+    .setup-steps { list-style: none; margin-bottom: 1.5rem; }
+    .setup-steps li { display: flex; gap: 12px; margin-bottom: 1rem; font-size: 13px; color: var(--text2); line-height: 1.6; }
+    .snum { width: 22px; height: 22px; border-radius: 50%; background: var(--blue-dim); color: var(--accent2); border: 1px solid rgba(59,130,246,0.3); font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; font-family: 'DM Mono', monospace; }
+    .setup-row { display: flex; gap: 8px; }
+    .setup-inp { flex: 1; font-size: 13px; font-family: 'DM Mono', monospace; padding: 10px 14px; border: 1px solid var(--border); border-radius: 10px; outline: none; color: var(--text); background: rgba(255,255,255,0.03); transition: border-color 0.2s, box-shadow 0.2s; }
+    .setup-inp:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--glow); }
+    .btn-connect { font-size: 13px; font-family: 'DM Sans', sans-serif; font-weight: 600; padding: 10px 22px; border-radius: 10px; border: none; background: linear-gradient(135deg, #2563eb, #7c3aed); color: #fff; cursor: pointer; white-space: nowrap; transition: all 0.2s; box-shadow: 0 4px 20px rgba(59,130,246,0.3); }
+    .btn-connect:hover { transform: translateY(-1px); box-shadow: 0 8px 30px rgba(59,130,246,0.4); }
+    .setup-hint { font-size: 12px; color: var(--text3); margin-top: 12px; line-height: 1.6; font-family: 'DM Mono', monospace; }
+    code { font-family: 'DM Mono', monospace; font-size: 11px; background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 4px; color: var(--accent2); }
+
+    @media (max-width: 900px) { .stats-grid { grid-template-columns: repeat(2,1fr); } .charts-row { grid-template-columns: 1fr; } }
+    @media (max-width: 600px) { .stats-grid { grid-template-columns: 1fr 1fr; } .filters-panel { flex-direction: column; } }
+  </style>
+</head>
+<body>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+
+  <nav>
+    <div class="nav-brand">
+      <div class="nav-logo">A</div>
+      AMZ Prep
+    </div>
+    <div class="nav-right">
+      <span id="refresh-indicator"></span>
+      <span class="nav-pill">PRICING INTELLIGENCE</span>
+      <button class="btn-refresh" onclick="manualRefresh()">↻ Refresh</button>
+    </div>
+  </nav>
+
+  <div id="app"></div>
+
+<script>
+var SHEET_ID       = '13_1g-Iej0YNbR-6YY2rLoM3-R5uHWpfqdrSh2FLct44';
+var REFRESH_MS     = 5 * 60 * 1000;
+var STATUS_COLORS  = { 'on-time':'#10b981','delayed':'#f59e0b','overdue':'#ef4444','pending':'#3b82f6','resolved':'#8b5cf6' };
+var STATUS_LABELS  = { 'on-time':'On Time','delayed':'Delayed','overdue':'Overdue','pending':'Pending','resolved':'Resolved' };
+
+var allData = [], activeFilter = 'all', sortCol = 'received', sortDir = -1;
+var donutChart = null, refreshTimer = null, countdownTimer = null, nextRefresh = null;
+var searchClient = '', dateFrom = '', dateTo = '', activeTab = 'overview';
+
+window.addEventListener('load', function() {
+  showDashboard();
+  loadData();
+});
+
+function showDashboard() {
+  document.getElementById('app').innerHTML =
+    '<div class="main">' +
+      '<div class="page-header">' +
+        '<div class="page-title">Pricing Request Intelligence</div>' +
+        '<div class="page-sub">Automated SLA tracking · <span id="last-updated">Loading…</span></div>' +
+      '</div>' +
+      '<div id="error-container"></div>' +
+      '<div id="content"><div class="loading-wrap"><div class="spinner"></div><div class="loading-txt">Syncing from Google Sheets…</div></div></div>' +
+    '</div>';
+}
+
+async function loadData() {
+  clearError();
+  var url = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tqx=out:csv&sheet=Tracker';
+  try {
+    var res = await fetch(url);
+    if (!res.ok) throw new Error('Cannot reach sheet (HTTP ' + res.status + '). Ensure the sheet is set to public view.');
+    var csv = await res.text();
+    if (csv.includes('<!DOCTYPE')) throw new Error('Sheet not found or not public.');
+    var rows = parseCSV(csv);
+    if (rows.length < 2) throw new Error('Sheet is empty — run backfillPricingRequests() first.');
+    allData = [];
+    for (var i = 1; i < rows.length; i++) {
+      var r = rows[i]; if (!r[1]) continue;
+      var hrs = r[6] !== '' ? parseFloat(r[6]) : null;
+      var raw = (r[7]||'').toLowerCase();
+      var s = raw.indexOf('resolved')!=-1?'resolved':raw.indexOf('on time')!=-1?'on-time':raw.indexOf('delayed')!=-1?'delayed':raw.indexOf('overdue')!=-1?'overdue':'pending';
+      allData.push({ client:r[1]||'?', received:r[2]||'', subject:r[3]||'', link:r[4]||'', replied:r[5]||null, responseHrs:hrs, status:s, resolvedAt:r[8]||'', requestedBy:r[9]||'' });
+    }
+    render();
+    scheduleRefresh();
+  } catch(e) {
+    showError(e.message);
+    document.getElementById('content').innerHTML = '<div class="empty-state">'+e.message+'</div>';
+  }
+}
+
+function scheduleRefresh() {
+  if (refreshTimer) clearTimeout(refreshTimer);
+  if (countdownTimer) clearInterval(countdownTimer);
+  nextRefresh = Date.now() + REFRESH_MS;
+  refreshTimer = setTimeout(loadData, REFRESH_MS);
+  countdownTimer = setInterval(function() {
+    var s = Math.max(0, Math.round((nextRefresh-Date.now())/1000));
+    var el = document.getElementById('refresh-indicator');
+    if (el) el.textContent = 'refreshes in ' + (s>=60?Math.floor(s/60)+'m':s+'s');
+  }, 1000);
+}
+
+function manualRefresh() { loadData(); }
+
+function getFiltered() {
+  return allData.filter(function(d) {
+    if (activeFilter !== 'all' && d.status !== activeFilter) return false;
+    if (searchClient && d.client.toLowerCase().indexOf(searchClient.toLowerCase()) === -1) return false;
+    if (dateFrom) { var rd=new Date(d.received),fd=new Date(dateFrom); if(!isNaN(rd)&&!isNaN(fd)&&rd<fd) return false; }
+    if (dateTo)   { var rd2=new Date(d.received),td=new Date(dateTo+'T23:59:59'); if(!isNaN(rd2)&&!isNaN(td)&&rd2>td) return false; }
+    return true;
+  });
+}
+
+function isFiltered() { return searchClient||dateFrom||dateTo; }
+function clearFilters() {
+  searchClient=''; dateFrom=''; dateTo='';
+  var sc=document.getElementById('sc'); if(sc) sc.value='';
+  var df=document.getElementById('df'); if(df) df.value='';
+  var dt=document.getElementById('dt'); if(dt) dt.value='';
+  render();
+}
+
+function render() {
+  var fd = getFiltered();
+  var replied  = fd.filter(function(d){return d.responseHrs!==null;});
+  var onTime   = fd.filter(function(d){return d.status==='on-time';}).length;
+  var delayed  = fd.filter(function(d){return d.status==='delayed';}).length;
+  var overdue  = fd.filter(function(d){return d.status==='overdue';}).length;
+  var pending  = fd.filter(function(d){return d.status==='pending';}).length;
+  var resolved = fd.filter(function(d){return d.status==='resolved';}).length;
+  var avgHrs   = replied.length ? Math.round(replied.reduce(function(s,d){return s+d.responseHrs;},0)/replied.length*10)/10 : 0;
+  var slaRate  = replied.length ? Math.round(onTime/replied.length*100) : 0;
+
+  var allOT=allData.filter(function(d){return d.status==='on-time';}).length;
+  var allDe=allData.filter(function(d){return d.status==='delayed';}).length;
+  var allOv=allData.filter(function(d){return d.status==='overdue';}).length;
+  var allPe=allData.filter(function(d){return d.status==='pending';}).length;
+  var allRe=allData.filter(function(d){return d.status==='resolved';}).length;
+
+  var barData = replied.slice().sort(function(a,b){return b.responseHrs-a.responseHrs;}).slice(0,7);
+  var maxH = barData.length ? barData[0].responseHrs : 1;
+  var bars = barData.map(function(d){
+    var pct = Math.round(d.responseHrs/maxH*100);
+    return '<div class="bar-item"><div class="bar-name" title="'+esc(d.client)+'">'+esc(d.client)+'</div>'+
+      '<div class="bar-track"><div class="bar-fill" style="width:'+pct+'%;background:'+STATUS_COLORS[d.status]+';"></div></div>'+
+      '<div class="bar-num">'+d.responseHrs+'h</div></div>';
+  }).join('');
+
+  var legend = [['On Time',onTime,'on-time'],['Delayed',delayed,'delayed'],['Overdue',overdue,'overdue'],['Pending',pending,'pending'],['Resolved',resolved,'resolved']].map(function(l){
+    return '<div class="legend-row"><div class="legend-dot" style="background:'+STATUS_COLORS[l[2]]+'"></div>'+l[0]+'<span class="legend-count">'+l[1]+'</span></div>';
+  }).join('');
+
+  var filterBadge = isFiltered() ? '<span class="filter-active-badge">'+fd.length+' / '+allData.length+'</span>' : '';
+  var slaClass = slaRate>=80?'up':slaRate>=50?'mid':'down';
+
+  document.getElementById('content').innerHTML =
+    // FILTERS
+    '<div class="filters-panel">' +
+      '<div class="filter-group"><div class="filter-label">Search client</div>' +
+        '<input class="filter-input" id="sc" type="text" placeholder="e.g. Dupray…" value="'+esc(searchClient)+'" oninput="searchClient=this.value;render();" /></div>' +
+      '<div class="filter-group"><div class="filter-label">Received from</div>' +
+        '<input class="filter-input" id="df" type="date" value="'+dateFrom+'" onchange="dateFrom=this.value;render();" /></div>' +
+      '<div class="filter-sep">→</div>' +
+      '<div class="filter-group"><div class="filter-label">Received to</div>' +
+        '<input class="filter-input" id="dt" type="date" value="'+dateTo+'" onchange="dateTo=this.value;render();" /></div>' +
+      (isFiltered() ? '<button class="btn-clear-filters" onclick="clearFilters()">✕ Clear</button>' : '') +
+    '</div>' +
+
+    // STATS
+    '<div class="stats-grid">' +
+      sCard('primary','📦','Total Requests',fd.length, isFiltered()?allData.length+' total':'all time', null) +
+      sCard('warning','⚡','Avg Response',avgHrs+'h', isFiltered()?'filtered range':'replied emails', null) +
+      sCard('success','🎯','SLA Rate',slaRate+'%', isFiltered()?'filtered range':'≤4h target', slaClass) +
+      sCard('danger', '⏳','Pending',pending,'awaiting reply', pending>0?'mid':null) +
+    '</div>' +
+
+    // CHARTS
+    '<div class="charts-row">' +
+      '<div class="glass-card">' +
+        '<div class="card-header"><div class="card-title">Response Time by Client</div><div class="card-badge">'+(isFiltered()?'FILTERED':'ALL TIME')+'</div></div>' +
+        (bars||'<div class="empty-state">No replied emails in range</div>') +
+      '</div>' +
+      '<div class="glass-card">' +
+        '<div class="card-header"><div class="card-title">Status Breakdown</div></div>' +
+        '<div class="donut-wrap"><canvas class="donut-canvas" id="donut-c"></canvas><div class="donut-legend">'+legend+'</div></div>' +
+      '</div>' +
+    '</div>' +
+
+    // TABS + TABLE
+    '<div class="tab-bar">' +
+      '<button class="tab-btn'+(activeTab==='overview'?' active':'')+'" onclick="switchTab(\'overview\')">All Requests'+filterBadge+'</button>' +
+      '<button class="tab-btn'+(activeTab==='requesters'?' active':'')+'" onclick="switchTab(\'requesters\')">By Requester</button>' +
+    '</div>' +
+
+    '<div id="tab-overview" '+(activeTab!=='overview'?'style="display:none"':'')+'>'+
+      '<div class="table-wrap">' +
+        '<div class="table-topbar">' +
+          '<div class="table-title">Pricing Requests '+filterBadge+'</div>' +
+          '<div class="status-filters">' +
+            sfil('all','All ('+allData.length+')') + sfil('on-time','✓ On Time ('+allOT+')') +
+            sfil('delayed','⚠ Delayed ('+allDe+')') + sfil('overdue','✕ Overdue ('+allOv+')') +
+            sfil('pending','○ Pending ('+allPe+')') + sfil('resolved','● Resolved ('+allRe+')') +
+          '</div>' +
+        '</div>' +
+        '<div id="tbl-body"></div>' +
+      '</div>' +
+    '</div>' +
+
+    '<div id="tab-requesters" '+(activeTab!=='requesters'?'style="display:none"':'')+'>'+
+      '<div id="req-body"></div>' +
+    '</div>';
+
+  var lu = document.getElementById('last-updated');
+  if (lu) lu.innerHTML = 'Last synced <span>' + new Date().toLocaleTimeString() + '</span>';
+
+  renderTable(fd);
+  if (activeTab === 'requesters') renderRequesters(fd);
+  drawDonut(onTime, delayed, overdue, pending, resolved);
+}
+
+function sCard(type, icon, label, val, sub, delta) {
+  var d = delta ? '<div class="stat-delta '+(delta==='up'?'up':delta==='mid'?'mid':'down')+'">'+(delta==='up'?'↑ HEALTHY':delta==='mid'?'⚠ WATCH':'↓ LOW')+'</div>' : '';
+  return '<div class="stat-card '+type+'" onmousemove="tilt3d(this,event)" onmouseleave="untilt(this)">'+
+    '<div class="stat-icon">'+icon+'</div>'+
+    '<div class="stat-label">'+label+'</div>'+
+    '<div class="stat-value">'+val+'</div>'+
+    '<div class="stat-sub">'+sub+'</div>'+d+
+  '</div>';
+}
+
+function sfil(f, label) {
+  return '<button class="sfil'+(activeFilter===f?' active':'')+'" onclick="setFilter(\''+f+'\')">'+label+'</button>';
+}
+
+function setFilter(f) { activeFilter=f; render(); }
+
+function switchTab(t) {
+  activeTab = t;
+  var ov = document.getElementById('tab-overview');
+  var rq = document.getElementById('tab-requesters');
+  if (ov) ov.style.display = t==='overview' ? '' : 'none';
+  if (rq) rq.style.display = t==='requesters' ? '' : 'none';
+  document.querySelectorAll('.tab-btn').forEach(function(b, i) {
+    b.classList.toggle('active', (i===0 && t==='overview') || (i===1 && t==='requesters'));
+  });
+  if (t === 'requesters') renderRequesters(getFiltered());
+}
+
+function renderTable(fd) {
+  var sorted = fd.slice().sort(function(a,b){
+    var av = sortCol==='responseHrs'?(a.responseHrs||999999):sortCol==='received'?new Date(a.received):(a[sortCol]||'');
+    var bv = sortCol==='responseHrs'?(b.responseHrs||999999):sortCol==='received'?new Date(b.received):(b[sortCol]||'');
+    return av<bv?sortDir:av>bv?-sortDir:0;
+  });
+  var si = function(c){ return sortCol===c?(sortDir===-1?'↓':'↑'):'↕'; };
+  var sc = function(c){ return sortCol===c?'sorted':''; };
+  if (!sorted.length) { document.getElementById('tbl-body').innerHTML='<div class="empty-state">No records match your filters</div>'; return; }
+  var rows = sorted.map(function(d){
+    var recv = d.received ? new Date(d.received).toLocaleDateString('en-CA',{month:'short',day:'numeric',year:'numeric'}) : '—';
+    var subj = d.subject.replace(/^re:\s*/i,'');
+    var subjEl = d.link ? '<a href="'+esc(d.link)+'" target="_blank" style="color:var(--text2);text-decoration:none;" title="'+esc(d.subject)+'">'+esc(subj)+'</a>' : esc(subj);
+    var cn = esc(d.client);
+    if (searchClient) cn = cn.replace(new RegExp('('+searchClient.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi'),'<mark style="background:rgba(59,130,246,0.25);color:var(--accent2);border-radius:2px;padding:0 2px;">$1</mark>');
+    return '<tr>'+
+      '<td class="td-client">'+cn+'</td>'+
+      '<td class="td-subject">'+subjEl+'</td>'+
+      '<td class="td-mono" style="white-space:nowrap;">'+recv+'</td>'+
+      '<td class="td-mono">'+(d.responseHrs!==null?d.responseHrs+'h':'—')+'</td>'+
+      '<td><span class="pill '+d.status+'">'+STATUS_LABELS[d.status]+'</span></td>'+
+      '<td class="td-mono" style="font-size:11px;">'+(d.requestedBy?esc(d.requestedBy):'—')+'</td>'+
+      '<td class="td-mono" style="font-size:11px;color:var(--text3);">'+(d.resolvedAt||'—')+'</td>'+
+    '</tr>';
+  }).join('');
+  document.getElementById('tbl-body').innerHTML =
+    '<table><thead><tr>'+
+      '<th class="'+sc('client')+'" onclick="sortBy(\'client\')">Client <span>'+si('client')+'</span></th>'+
+      '<th>Subject</th>'+
+      '<th class="'+sc('received')+'" onclick="sortBy(\'received\')">Received <span>'+si('received')+'</span></th>'+
+      '<th class="'+sc('responseHrs')+'" onclick="sortBy(\'responseHrs\')">Response <span>'+si('responseHrs')+'</span></th>'+
+      '<th>Status</th>'+
+      '<th class="'+sc('requestedBy')+'" onclick="sortBy(\'requestedBy\')">Requested by <span>'+si('requestedBy')+'</span></th>'+
+      '<th>Resolved at</th>'+
+    '</tr></thead><tbody>'+rows+'</tbody></table>';
+}
+
+function renderRequesters(fd) {
+  var map = {};
+  fd.forEach(function(d){
+    var n = d.requestedBy||'Unknown';
+    if (!map[n]) map[n]={name:n,total:0,replied:[],onTime:0,delayed:0,overdue:0,pending:0,resolved:0};
+    map[n].total++;
+    if (d.responseHrs!==null) map[n].replied.push(d.responseHrs);
+    map[n][d.status.replace('-','')]? map[n][d.status.replace('-','')]++ : null;
+    if (d.status==='on-time')  map[n].onTime++;
+    if (d.status==='delayed')  map[n].delayed++;
+    if (d.status==='overdue')  map[n].overdue++;
+    if (d.status==='pending')  map[n].pending++;
+    if (d.status==='resolved') map[n].resolved++;
+  });
+  var rows = Object.values(map).sort(function(a,b){return b.total-a.total;});
+  if (!rows.length) { document.getElementById('req-body').innerHTML='<div class="empty-state">No data</div>'; return; }
+  var trows = rows.map(function(r){
+    var avg = r.replied.length?Math.round(r.replied.reduce(function(s,v){return s+v;},0)/r.replied.length*10)/10:null;
+    var sla = r.replied.length?Math.round(r.onTime/r.replied.length*100):null;
+    var fastest = r.replied.length?Math.min.apply(null,r.replied):null;
+    var slowest = r.replied.length?Math.max.apply(null,r.replied):null;
+    var slaCol = sla!=null?(sla>=80?'var(--green)':sla>=50?'var(--amber)':'var(--red)'):'var(--text3)';
+    var breakdown = [
+      r.onTime   ?'<span style="color:var(--green);font-size:11px;">'+r.onTime+' on time</span>':'',
+      r.delayed  ?'<span style="color:var(--amber);font-size:11px;">'+r.delayed+' delayed</span>':'',
+      r.overdue  ?'<span style="color:var(--red);font-size:11px;">'+r.overdue+' overdue</span>':'',
+      r.pending  ?'<span style="color:var(--accent2);font-size:11px;">'+r.pending+' pending</span>':'',
+      r.resolved ?'<span style="color:var(--purple);font-size:11px;">'+r.resolved+' resolved</span>':''
+    ].filter(Boolean).join('<span style="color:var(--border2);margin:0 4px;">·</span>');
+    return '<tr>'+
+      '<td class="req-name">'+esc(r.name)+'</td>'+
+      '<td class="req-total">'+r.total+'</td>'+
+      '<td class="req-metric">'+(avg!=null?avg+'h':'—')+'</td>'+
+      '<td class="req-metric" style="color:var(--green);">'+(fastest!=null?fastest+'h':'—')+'</td>'+
+      '<td class="req-metric" style="color:var(--red);">'+(slowest!=null?slowest+'h':'—')+'</td>'+
+      '<td class="req-metric" style="color:'+slaCol+';font-weight:700;">'+(sla!=null?sla+'%':'—')+'</td>'+
+      '<td style="font-size:12px;">'+breakdown+'</td>'+
+    '</tr>';
+  }).join('');
+  document.getElementById('req-body').innerHTML =
+    '<div class="table-wrap"><div class="table-topbar"><div class="table-title">Requests by Sender'+(isFiltered()?'<span class="filter-active-badge">Filtered</span>':'')+'</div></div>'+
+    '<table><thead><tr>'+
+      '<th>Requested by</th><th style="text-align:center;">Total</th>'+
+      '<th style="text-align:center;">Avg response</th><th style="text-align:center;">Fastest</th>'+
+      '<th style="text-align:center;">Slowest</th><th style="text-align:center;">SLA rate</th><th>Breakdown</th>'+
+    '</tr></thead><tbody>'+trows+'</tbody></table></div>';
+}
+
+function sortBy(col) {
+  if (sortCol===col) sortDir=-sortDir; else { sortCol=col; sortDir=-1; }
+  renderTable(getFiltered());
+}
+
+function drawDonut(onTime,delayed,overdue,pending,resolved) {
+  setTimeout(function(){
+    var ctx = document.getElementById('donut-c'); if(!ctx) return;
+    if (donutChart) { donutChart.destroy(); donutChart=null; }
+    donutChart = new Chart(ctx, {
+      type: 'doughnut',
+      data: { datasets:[{ data:[onTime,delayed,overdue,pending,resolved],
+        backgroundColor:['#10b981','#f59e0b','#ef4444','#3b82f6','#8b5cf6'],
+        borderWidth: 2, borderColor: '#06080f', hoverOffset: 6 }] },
+      options: { cutout:'72%', plugins:{ legend:{display:false} }, animation:{ duration:800, easing:'easeInOutQuart' } }
+    });
+  }, 80);
+}
+
+// 3D TILT
+function tilt3d(el, e) {
+  var r = el.getBoundingClientRect();
+  var cx = r.left + r.width/2, cy = r.top + r.height/2;
+  var rx = (e.clientY-cy)/r.height*12;
+  var ry = (e.clientX-cx)/r.width*-12;
+  el.style.transform = 'perspective(600px) rotateX('+rx+'deg) rotateY('+ry+'deg) translateY(-6px) scale(1.02)';
+}
+function untilt(el) { el.style.transform = ''; }
+
+function parseCSV(text) {
+  var rows=[],lines=text.split('\n');
+  for(var i=0;i<lines.length;i++){
+    var line=lines[i].trim(); if(!line) continue;
+    var cols=[],cur='',inQ=false;
+    for(var j=0;j<line.length;j++){var ch=line[j];if(ch==='"')inQ=!inQ;else if(ch===','&&!inQ){cols.push(cur.trim());cur='';}else cur+=ch;}
+    cols.push(cur.trim()); rows.push(cols);
+  }
+  return rows;
+}
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function showError(msg){var el=document.getElementById('error-container');if(el)el.innerHTML='<div class="error-banner">⚠ '+msg+'</div>';}
+function clearError(){var el=document.getElementById('error-container');if(el)el.innerHTML='';}
+</script>
+</body>
+</html>
