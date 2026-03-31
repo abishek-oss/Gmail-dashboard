@@ -368,6 +368,32 @@
 
     /* STATES */
     .empty-state { text-align: center; padding: 4rem 1rem; color: var(--text3); font-family: 'DM Mono', monospace; font-size: 13px; }
+
+    /* ── BLAIR FORREST TAB */
+    .blair-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 1.25rem; }
+    .blair-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800; letter-spacing: -0.02em; color: var(--text); }
+    .blair-sub { font-size: 12px; font-family: 'DM Mono', monospace; color: var(--text3); margin-top: 2px; }
+    .btn-blair-report {
+      font-size: 12px; font-family: Verdana, sans-serif; font-weight: 600;
+      padding: 9px 20px; border-radius: 10px; border: none;
+      background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: #fff;
+      cursor: pointer; transition: all 0.2s;
+      display: inline-flex; align-items: center; gap: 8px;
+      box-shadow: 0 4px 20px rgba(139,92,246,0.3);
+    }
+    .btn-blair-report:hover { transform: translateY(-1px); box-shadow: 0 8px 30px rgba(139,92,246,0.4); }
+    .blair-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 1.25rem; }
+    .blair-stat { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.25rem; text-align: center; }
+    .blair-stat .bs-val { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; }
+    .blair-stat .bs-lbl { font-size: 10px; font-family: 'DM Mono', monospace; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text3); margin-top: 4px; }
+    .report-schedule-info {
+      font-size: 12px; font-family: 'DM Mono', monospace; color: var(--text3);
+      background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+      padding: 10px 16px; margin-bottom: 1.25rem;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .report-schedule-info .rsi-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--purple); animation: pulse-dot 2s infinite; }
+    @keyframes pulse-dot { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
     .loading-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6rem 1rem; gap: 16px; }
     .spinner { width: 40px; height: 40px; border: 2px solid rgba(255,255,255,0.05); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
     .loading-txt { font-size: 13px; font-family: 'DM Mono', monospace; color: var(--text3); letter-spacing: 0.04em; }
@@ -734,6 +760,7 @@ function render() {
     '<div class="tab-bar">' +
       '<button class="tab-btn'+(activeTab==='overview'?' active':'')+'" onclick="switchTab(\'overview\')">All Requests'+filterBadge+'</button>' +
       '<button class="tab-btn'+(activeTab==='requesters'?' active':'')+'" onclick="switchTab(\'requesters\')">By Requester</button>' +
+      '<button class="tab-btn'+(activeTab==='blair'?' active':'')+'" onclick="switchTab(\'blair\')">Blair Forrest</button>' +
     '</div>' +
 
     '<div id="tab-overview" '+(activeTab!=='overview'?'style="display:none"':'')+'>'+
@@ -752,6 +779,10 @@ function render() {
 
     '<div id="tab-requesters" '+(activeTab!=='requesters'?'style="display:none"':'')+'>'+
       '<div id="req-body"></div>' +
+    '</div>' +
+
+    '<div id="tab-blair" '+(activeTab!=='blair'?'style="display:none"':'')+'>'+
+      '<div id="blair-body"></div>' +
     '</div>';
 
   var lu = document.getElementById('last-updated');
@@ -759,6 +790,7 @@ function render() {
 
   renderTable(fd);
   if (activeTab === 'requesters') renderRequesters(fd);
+  if (activeTab === 'blair') renderBlairTab(fd);
   drawDonut(onTime, delayed, overdue, pending, resolved);
 }
 
@@ -782,12 +814,15 @@ function switchTab(t) {
   activeTab = t;
   var ov = document.getElementById('tab-overview');
   var rq = document.getElementById('tab-requesters');
+  var bl = document.getElementById('tab-blair');
   if (ov) ov.style.display = t==='overview' ? '' : 'none';
   if (rq) rq.style.display = t==='requesters' ? '' : 'none';
+  if (bl) bl.style.display = t==='blair' ? '' : 'none';
   document.querySelectorAll('.tab-btn').forEach(function(b, i) {
-    b.classList.toggle('active', (i===0 && t==='overview') || (i===1 && t==='requesters'));
+    b.classList.toggle('active', (i===0 && t==='overview') || (i===1 && t==='requesters') || (i===2 && t==='blair'));
   });
   if (t === 'requesters') renderRequesters(getFiltered());
+  if (t === 'blair') renderBlairTab(getFiltered());
 }
 
 function renderTable(fd) {
@@ -1040,6 +1075,253 @@ function rptTable(headers, rows) {
 function rptTrunc(str, max) {
   return str.length > max ? str.substring(0, max) + '…' : str;
 }
+
+/* ── Blair Forrest Filter & Tab ── */
+function getBlairEmails(data) {
+  return data.filter(function(d) {
+    var name = (d.requestedBy || '').toLowerCase();
+    var subj = (d.subject || '').toLowerCase();
+    var client = (d.client || '').toLowerCase();
+    return name.indexOf('blair') !== -1 || subj.indexOf('blair') !== -1 || client.indexOf('blair') !== -1;
+  });
+}
+
+function renderBlairTab(fd) {
+  var blairData = getBlairEmails(fd);
+  var allBlairData = getBlairEmails(allData);
+  var replied = blairData.filter(function(d) { return d.responseHrs !== null; });
+  var avgHrs = replied.length
+    ? Math.round(replied.reduce(function(s, d) { return s + d.responseHrs; }, 0) / replied.length * 10) / 10
+    : 0;
+  var pending = blairData.filter(function(d) { return d.status === 'pending'; }).length;
+  var overdue = blairData.filter(function(d) { return d.status === 'overdue'; }).length;
+  var resolved = blairData.filter(function(d) { return d.status === 'resolved'; }).length;
+  var onTime = blairData.filter(function(d) { return d.status === 'on-time'; }).length;
+
+  var nextReport = getNextBiWeeklyDate();
+
+  var html =
+    '<div class="blair-header">' +
+      '<div>' +
+        '<div class="blair-title">📋 Blair Forrest — Email Involvement</div>' +
+        '<div class="blair-sub">' + allBlairData.length + ' total emails requiring Blair\'s intervention</div>' +
+      '</div>' +
+      '<button class="btn-blair-report" onclick="sendBlairReportToGoku()">📨 Send Bi-Weekly Report to Goku</button>' +
+    '</div>' +
+
+    '<div class="report-schedule-info">' +
+      '<div class="rsi-dot"></div>' +
+      'Bi-weekly report auto-scheduled — next report: <strong style="color:var(--accent2);margin-left:4px;">' + nextReport + '</strong>' +
+    '</div>' +
+
+    '<div class="blair-stats">' +
+      '<div class="blair-stat"><div class="bs-val" style="color:#bae6fd;">' + blairData.length + '</div><div class="bs-lbl">Total Emails</div></div>' +
+      '<div class="blair-stat"><div class="bs-val" style="color:var(--amber);">' + avgHrs + 'h</div><div class="bs-lbl">Avg Response</div></div>' +
+      '<div class="blair-stat"><div class="bs-val" style="color:var(--red);">' + (pending + overdue) + '</div><div class="bs-lbl">Pending / Overdue</div></div>' +
+    '</div>';
+
+  // Table of Blair's emails
+  if (!blairData.length) {
+    html += '<div class="table-wrap"><div class="empty-state">No emails found involving Blair Forrest</div></div>';
+  } else {
+    var sorted = blairData.slice().sort(function(a, b) {
+      return new Date(b.received) - new Date(a.received);
+    });
+    var rows = sorted.map(function(d) {
+      var recv = d.received ? new Date(d.received).toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+      var subj = d.subject.replace(/^re:\s*/i, '');
+      var subjEl = d.link ? '<a href="' + esc(d.link) + '" target="_blank" style="color:var(--text2);text-decoration:none;" title="' + esc(d.subject) + '">' + esc(subj) + '</a>' : esc(subj);
+      return '<tr>' +
+        '<td class="td-client">' + esc(d.client) + '</td>' +
+        '<td class="td-subject">' + subjEl + '</td>' +
+        '<td class="td-mono" style="white-space:nowrap;">' + recv + '</td>' +
+        '<td class="td-mono">' + (d.responseHrs !== null ? d.responseHrs + 'h' : '—') + '</td>' +
+        '<td><span class="pill ' + d.status + '">' + STATUS_LABELS[d.status] + '</span></td>' +
+        '<td class="td-mono" style="font-size:11px;">' + (d.requestedBy ? esc(d.requestedBy) : '—') + '</td>' +
+      '</tr>';
+    }).join('');
+    html += '<div class="table-wrap">' +
+      '<div class="table-topbar"><div class="table-title">Emails Involving Blair Forrest <span class="filter-active-badge">' + blairData.length + '</span></div></div>' +
+      '<table><thead><tr>' +
+        '<th>Client</th><th>Subject</th><th>Received</th><th>Response</th><th>Status</th><th>Requested by</th>' +
+      '</tr></thead><tbody>' + rows + '</tbody></table></div>';
+  }
+
+  document.getElementById('blair-body').innerHTML = html;
+}
+
+/* ── Bi-weekly report scheduling ── */
+function getNextBiWeeklyDate() {
+  var now = new Date();
+  // Bi-weekly on Monday
+  var day = now.getDay(); // 0=Sun, 1=Mon
+  var daysUntilMonday = (1 - day + 7) % 7 || 7;
+  var nextMonday = new Date(now.getTime() + daysUntilMonday * 24 * 60 * 60 * 1000);
+  // Get the week number of the year to determine odd/even week for bi-weekly
+  var startOfYear = new Date(now.getFullYear(), 0, 1);
+  var weekNum = Math.ceil(((nextMonday - startOfYear) / (24 * 60 * 60 * 1000) + startOfYear.getDay() + 1) / 7);
+  if (weekNum % 2 !== 0) {
+    nextMonday = new Date(nextMonday.getTime() + 7 * 24 * 60 * 60 * 1000);
+  }
+  return nextMonday.toLocaleDateString('en-CA', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function sendBlairReportToGoku() {
+  if (!allData.length) { alert('No data loaded yet.'); return; }
+
+  var now = new Date();
+  var twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+  var blairAll = getBlairEmails(allData);
+  var blairRecent = blairAll.filter(function(d) {
+    return d.received && new Date(d.received) >= twoWeeksAgo;
+  });
+  var blairOpen = blairAll.filter(function(d) { return d.status !== 'resolved'; });
+  var blairResolved = blairAll.filter(function(d) {
+    return d.status === 'resolved' && d.resolvedAt && new Date(d.resolvedAt) >= twoWeeksAgo;
+  });
+  var blairReplied = blairRecent.filter(function(d) { return d.responseHrs !== null; });
+  var avgHrs = blairReplied.length
+    ? Math.round(blairReplied.reduce(function(s, d) { return s + d.responseHrs; }, 0) / blairReplied.length * 10) / 10
+    : 0;
+
+  var periodLabel = twoWeeksAgo.toLocaleDateString('en-CA', { month: 'short', day: 'numeric' }) + ' — ' +
+    now.toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' });
+
+  // Build HTML report
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"/>' +
+    '<title>Blair Forrest Bi-Weekly Report — ' + periodLabel + '</title>' +
+    '<style>' +
+    'body{font-family:sans-serif;max-width:800px;margin:0 auto;padding:2rem;color:#1e293b;background:#fff;}' +
+    'h1{font-size:22px;margin:0 0 4px;}' +
+    '.subtitle{color:#64748b;font-size:14px;margin-bottom:2rem;}' +
+    '.metrics{display:flex;gap:12px;margin-bottom:2rem;}' +
+    '.metric-box{flex:1;padding:16px;border-radius:10px;border:1px solid #e5e7eb;text-align:center;}' +
+    '.metric-box .val{font-size:28px;font-weight:800;margin-bottom:2px;}' +
+    '.metric-box .lbl{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;}' +
+    'h2{font-size:16px;margin:2rem 0 10px;padding-top:1.5rem;border-top:1px solid #e5e7eb;}' +
+    'h2:first-of-type{border-top:none;padding-top:0;}' +
+    'table{width:100%;border-collapse:collapse;margin-bottom:0.5rem;font-size:13px;}' +
+    'th{text-align:left;padding:8px 10px;background:#f8fafc;border-bottom:2px solid #e5e7eb;font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:0.04em;}' +
+    'td{padding:8px 10px;border-bottom:1px solid #f1f5f9;}' +
+    'a{color:#2563eb;text-decoration:none;}' +
+    '.badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;}' +
+    '.badge.on-time{background:#dcfce7;color:#16a34a;}.badge.delayed{background:#fef3c7;color:#d97706;}' +
+    '.badge.overdue{background:#fee2e2;color:#dc2626;}.badge.pending{background:#dbeafe;color:#2563eb;}' +
+    '.badge.resolved{background:#dcfce7;color:#16a34a;}' +
+    '.empty{color:#94a3b8;font-size:13px;padding:12px 0;}' +
+    '.footer{text-align:center;color:#94a3b8;font-size:12px;margin-top:2rem;padding-top:1rem;border-top:1px solid #e5e7eb;}' +
+    '</style></head><body>' +
+    '<h1>📋 Blair Forrest — Bi-Weekly Intervention Report</h1>' +
+    '<div class="subtitle">Period: ' + periodLabel + '</div>' +
+
+    '<div class="metrics">' +
+    '<div class="metric-box"><div class="val" style="color:#7c3aed;">' + blairRecent.length + '</div><div class="lbl">Emails This Period</div></div>' +
+    '<div class="metric-box"><div class="val" style="color:#2563eb;">' + avgHrs + 'h</div><div class="lbl">Avg Response</div></div>' +
+    '<div class="metric-box"><div class="val" style="color:#16a34a;">' + blairResolved.length + '</div><div class="lbl">Resolved This Period</div></div>' +
+    '<div class="metric-box"><div class="val" style="color:#ea580c;">' + blairOpen.length + '</div><div class="lbl">Still Open</div></div>' +
+    '</div>' +
+
+    '<h2>📨 New Emails This Period (' + blairRecent.length + ')</h2>' +
+    (blairRecent.length ? rptTable(['Client', 'Subject', 'Status', 'Response Time', 'Received'],
+      blairRecent.sort(function(a, b) { return new Date(b.received) - new Date(a.received); }).map(function(d) {
+        return [esc(d.client), '<a href="' + esc(d.link) + '">' + esc(rptTrunc(d.subject, 50)) + '</a>',
+          '<span class="badge ' + d.status + '">' + STATUS_LABELS[d.status] + '</span>',
+          d.responseHrs !== null ? d.responseHrs + 'h' : '—', d.received || '—'];
+      })) : '<div class="empty">No new emails involving Blair this period.</div>') +
+
+    '<h2>✅ Resolved This Period (' + blairResolved.length + ')</h2>' +
+    (blairResolved.length ? rptTable(['Client', 'Subject', 'Response Time', 'Resolved At'],
+      blairResolved.map(function(d) {
+        return [esc(d.client), '<a href="' + esc(d.link) + '">' + esc(rptTrunc(d.subject, 50)) + '</a>',
+          d.responseHrs !== null ? d.responseHrs + 'h' : '—', d.resolvedAt || '—'];
+      })) : '<div class="empty">No emails resolved this period.</div>') +
+
+    '<h2>⏳ Still Open / Pending (' + blairOpen.length + ')</h2>' +
+    (blairOpen.length ? rptTable(['Client', 'Subject', 'Status', 'Days Open', 'Received'],
+      blairOpen.sort(function(a, b) { return new Date(a.received) - new Date(b.received); }).map(function(d) {
+        var days = Math.floor((now - new Date(d.received)) / (1000 * 60 * 60 * 24));
+        return [esc(d.client), '<a href="' + esc(d.link) + '">' + esc(rptTrunc(d.subject, 50)) + '</a>',
+          '<span class="badge ' + d.status + '">' + STATUS_LABELS[d.status] + '</span>',
+          '<strong style="color:#dc2626;">' + days + ' days</strong>', d.received || '—'];
+      })) : '<div class="empty">No open emails. All caught up!</div>') +
+
+    '<h2>📊 All-Time Summary</h2>' +
+    '<div class="metrics">' +
+    '<div class="metric-box"><div class="val" style="color:#1e293b;">' + blairAll.length + '</div><div class="lbl">Total All-Time</div></div>' +
+    '<div class="metric-box"><div class="val" style="color:#16a34a;">' + blairAll.filter(function(d) { return d.status === 'resolved'; }).length + '</div><div class="lbl">Total Resolved</div></div>' +
+    '<div class="metric-box"><div class="val" style="color:#dc2626;">' + blairAll.filter(function(d) { return d.status === 'overdue'; }).length + '</div><div class="lbl">Total Overdue</div></div>' +
+    '</div>' +
+
+    '<div class="footer">Generated from AMZ Prep Pricing Dashboard · ' + now.toLocaleString() + '</div>' +
+    '</body></html>';
+
+  // Download the HTML report
+  var blob = new Blob([html], { type: 'text/html' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'Blair-Forrest-Report-' + now.toISOString().slice(0, 10) + '.html';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  // Build plain-text summary for the email body
+  var summary = 'Hi Goku,%0D%0A%0D%0A' +
+    'Please find the bi-weekly report for emails requiring Blair Forrest\'s intervention.%0D%0A%0D%0A' +
+    'Period: ' + encodeURIComponent(periodLabel) + '%0D%0A%0D%0A' +
+    '--- Summary ---%0D%0A' +
+    'Emails this period: ' + blairRecent.length + '%0D%0A' +
+    'Avg response time: ' + avgHrs + 'h%0D%0A' +
+    'Resolved this period: ' + blairResolved.length + '%0D%0A' +
+    'Still open: ' + blairOpen.length + '%0D%0A%0D%0A';
+
+  if (blairOpen.length) {
+    summary += '--- Open Items ---%0D%0A';
+    blairOpen.forEach(function(d) {
+      var days = Math.floor((now - new Date(d.received)) / (1000 * 60 * 60 * 24));
+      summary += '• ' + encodeURIComponent(d.client) + ' — ' + encodeURIComponent(rptTrunc(d.subject, 60)) + ' (' + days + ' days open)%0D%0A';
+    });
+    summary += '%0D%0A';
+  }
+
+  summary += 'The full HTML report is attached separately.%0D%0A%0D%0A' +
+    'Best regards,%0D%0AAMZ Prep Pricing Dashboard';
+
+  var subject = encodeURIComponent('Blair Forrest Bi-Weekly Intervention Report — ' + periodLabel);
+
+  // Open mailto to Goku
+  setTimeout(function() {
+    window.location.href = 'mailto:goku@amzprep.com?subject=' + subject + '&body=' + summary;
+  }, 500);
+}
+
+/* ── Bi-weekly auto-reminder check ── */
+(function checkBiWeeklyReminder() {
+  var REMINDER_KEY = 'blair_report_last_sent';
+  var lastSent = localStorage.getItem(REMINDER_KEY);
+  var now = new Date();
+  var daysSinceLast = lastSent ? Math.floor((now - new Date(lastSent)) / (1000 * 60 * 60 * 24)) : 999;
+  if (daysSinceLast >= 14) {
+    // Show a non-blocking reminder after data loads
+    var origRender = window.render;
+    if (origRender) {
+      window.render = function() {
+        origRender();
+        window.render = origRender; // restore
+        var blairEmails = getBlairEmails(allData);
+        if (blairEmails.length > 0) {
+          var banner = document.createElement('div');
+          banner.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:9999;background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;padding:14px 20px;border-radius:14px;font-size:13px;font-family:Verdana,sans-serif;box-shadow:0 8px 30px rgba(139,92,246,0.4);display:flex;align-items:center;gap:12px;max-width:420px;animation:cardIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both;';
+          banner.innerHTML = '<div><strong>📨 Bi-Weekly Report Due</strong><br><span style="font-size:12px;opacity:0.85;">Blair Forrest\'s intervention report is ready to send to Goku.</span></div>' +
+            '<button onclick="sendBlairReportToGoku();localStorage.setItem(\'blair_report_last_sent\',new Date().toISOString());this.parentElement.remove();" style="padding:8px 16px;border-radius:8px;border:none;background:#fff;color:#6d28d9;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap;">Send Now</button>' +
+            '<button onclick="this.parentElement.remove();" style="padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.3);background:transparent;color:#fff;font-size:12px;cursor:pointer;">✕</button>';
+          document.body.appendChild(banner);
+        }
+      };
+    }
+  }
+})();
 </script>
 </body>
 </html>
