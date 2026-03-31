@@ -61,6 +61,8 @@ The dashboard reads directly from the Google Sheet — no API keys or logins req
 ### Features
 - **Overview tab** — stats, response time bar chart, status donut, and full request table
 - **By Requester tab** — per-sender breakdown with total requests, avg/fastest/slowest response times, and SLA rate
+- **Blair Forrest tab** — dedicated view of all emails requiring Blair's intervention, with summary stats and a full table filtered by requester/subject/client
+- **Bi-weekly report for Goku** — generates an HTML report of Blair's email involvement over the last 14 days and opens a pre-filled email to Goku; auto-reminder banner appears every 2 weeks
 - **Client search** — filter the entire dashboard by client name (highlights matches in table)
 - **Date range filter** — filter by received date; all stats including avg response time pivot to the filtered range
 - **Status filters** — On Time / Delayed / Overdue / Pending / Resolved
@@ -148,12 +150,38 @@ Run these one-time scripts in Apps Script to populate existing data:
 
 ---
 
+## � Blair Forrest Tracking & Bi-Weekly Report
+
+The **Blair Forrest** tab on the dashboard surfaces every email where Blair is tagged — matched by requester name, email subject, or client field (case-insensitive).
+
+### What the tab shows
+- **Summary stats** — total emails involving Blair, average response time, pending/overdue count
+- **Full table** — all matching emails sorted by most recent, with client, subject, status, and response time
+- **Next report date** — displays when the next bi-weekly report is due
+
+### Bi-weekly report to Goku
+Clicking **"Send Bi-Weekly Report to Goku"** will:
+1. Generate a downloadable HTML report covering the last 14 days
+2. Open a pre-filled `mailto:` email to `goku@amzprep.com` with a plain-text summary
+
+The report includes:
+- New emails requiring Blair's intervention in the period
+- Emails resolved during the period
+- Still-open items with days-open count
+- All-time summary statistics
+
+### Auto-reminder
+Every **14 days** (tracked via `localStorage`), a notification banner appears on the dashboard reminding users to send the report. It includes a one-click **"Send Now"** button.
+
+---
+
 ## 👥 Team
 
 | Person | Role |
 |---|---|
 | Abishek Swaminathan | Primary responder (`abishek@amzprep.com`) |
-| Gokulan Balakrishnan | Secondary responder (`goku@amzprep.com`) |
+| Gokulan Balakrishnan | Secondary responder / report recipient (`goku@amzprep.com`) |
+| Blair Forrest | Escalation contact — intervention tracked on dashboard |
 
 To add more team members, update the `RESPONDERS` and `NUDGE_RECIPIENTS` arrays at the top of `gmail_daily_digest.gs`.
 
