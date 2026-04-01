@@ -609,6 +609,7 @@
 
 <script>
 var SHEET_ID       = '13_1g-Iej0YNbR-6YY2rLoM3-R5uHWpfqdrSh2FLct44';
+var WEBAPP_URL     = 'https://script.google.com/macros/s/AKfycbwj0cBbxCF3Pff0J_dvA4bnPG9KaEoykWyv7oCdW2R0GFa4NDZe07eZVP9shsnX5E4N/exec';
 var REFRESH_MS     = 5 * 60 * 1000;
 var STATUS_COLORS  = { 'on-time':'#10b981','delayed':'#f59e0b','overdue':'#ef4444','pending':'#7dd3fc','resolved':'#10b981' };
 var STATUS_LABELS  = { 'on-time':'On Time','delayed':'Delayed','overdue':'Overdue','pending':'Pending','resolved':'Resolved' };
@@ -1255,45 +1256,38 @@ function sendBlairReportToGoku() {
     '<div class="footer">Generated from AMZ Prep Pricing Dashboard · ' + now.toLocaleString() + '</div>' +
     '</body></html>';
 
-  // Download the HTML report
-  var blob = new Blob([html], { type: 'text/html' });
-  var url = URL.createObjectURL(blob);
-  var a = document.createElement('a');
-  a.href = url;
-  a.download = 'Blair-Forrest-Report-' + now.toISOString().slice(0, 10) + '.html';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  // Send email via Apps Script web app
+  if (!WEBAPP_URL) { alert('WEBAPP_URL is not configured. Set it at the top of the script.'); return; }
 
-  // Build plain-text summary for the email body
-  var summary = 'Hi Goku,%0D%0A%0D%0A' +
-    'Please find the bi-weekly report for emails requiring Blair Forrest\'s intervention.%0D%0A%0D%0A' +
-    'Period: ' + encodeURIComponent(periodLabel) + '%0D%0A%0D%0A' +
-    '--- Summary ---%0D%0A' +
-    'Emails this period: ' + blairRecent.length + '%0D%0A' +
-    'Avg response time: ' + avgHrs + 'h%0D%0A' +
-    'Resolved this period: ' + blairResolved.length + '%0D%0A' +
-    'Still open: ' + blairOpen.length + '%0D%0A%0D%0A';
+  var btn = document.querySelector('.btn-blair-report');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Sending…'; }
 
-  if (blairOpen.length) {
-    summary += '--- Open Items ---%0D%0A';
-    blairOpen.forEach(function(d) {
-      var days = Math.floor((now - new Date(d.received)) / (1000 * 60 * 60 * 24));
-      summary += '• ' + encodeURIComponent(d.client) + ' — ' + encodeURIComponent(rptTrunc(d.subject, 60)) + ' (' + days + ' days open)%0D%0A';
-    });
-    summary += '%0D%0A';
-  }
-
-  summary += 'The full HTML report is attached separately.%0D%0A%0D%0A' +
-    'Best regards,%0D%0AAMZ Prep Pricing Dashboard';
-
-  var subject = encodeURIComponent('Blair Forrest Bi-Weekly Intervention Report — ' + periodLabel);
-
-  // Open mailto to Goku
-  setTimeout(function() {
-    window.location.href = 'mailto:goku@amzprep.com?subject=' + subject + '&body=' + summary;
-  }, 500);
+  fetch(WEBAPP_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({
+      action: 'sendBlairReport',
+      to: 'goku@amzprep.com',
+      subject: 'Blair Forrest Bi-Weekly Intervention Report — ' + periodLabel,
+      htmlBody: html
+    })
+  })
+  .then(function(res) { return res.json(); })
+  .then(function(data) {
+    if (data.status === 'ok') {
+      localStorage.setItem('blair_report_last_sent', new Date().toISOString());
+      if (btn) { btn.textContent = '✅ Sent!'; btn.style.background = 'linear-gradient(135deg, #10b981, #059669)'; }
+      setTimeout(function() {
+        if (btn) { btn.disabled = false; btn.textContent = '📨 Send Bi-Weekly Report to Goku'; btn.style.background = ''; }
+      }, 3000);
+    } else {
+      throw new Error(data.error || 'Unknown error');
+    }
+  })
+  .catch(function(err) {
+    alert('Failed to send report: ' + err.message);
+    if (btn) { btn.disabled = false; btn.textContent = '📨 Send Bi-Weekly Report to Goku'; }
+  });
 }
 
 /* ── Bi-weekly auto-reminder check ── */
@@ -1314,7 +1308,7 @@ function sendBlairReportToGoku() {
           var banner = document.createElement('div');
           banner.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:9999;background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;padding:14px 20px;border-radius:14px;font-size:13px;font-family:Verdana,sans-serif;box-shadow:0 8px 30px rgba(139,92,246,0.4);display:flex;align-items:center;gap:12px;max-width:420px;animation:cardIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both;';
           banner.innerHTML = '<div><strong>📨 Bi-Weekly Report Due</strong><br><span style="font-size:12px;opacity:0.85;">Blair Forrest\'s intervention report is ready to send to Goku.</span></div>' +
-            '<button onclick="sendBlairReportToGoku();localStorage.setItem(\'blair_report_last_sent\',new Date().toISOString());this.parentElement.remove();" style="padding:8px 16px;border-radius:8px;border:none;background:#fff;color:#6d28d9;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap;">Send Now</button>' +
+            '<button onclick="sendBlairReportToGoku();this.parentElement.remove();" style="padding:8px 16px;border-radius:8px;border:none;background:#fff;color:#6d28d9;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap;">Send Now</button>' +
             '<button onclick="this.parentElement.remove();" style="padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.3);background:transparent;color:#fff;font-size:12px;cursor:pointer;">✕</button>';
           document.body.appendChild(banner);
         }
