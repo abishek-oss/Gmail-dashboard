@@ -648,7 +648,7 @@ async function loadData() {
       var hrs = r[6] !== '' ? parseFloat(r[6]) : null;
       var raw = (r[7]||'').toLowerCase();
       var s = raw.indexOf('resolved')!=-1?'resolved':raw.indexOf('on time')!=-1?'on-time':raw.indexOf('delayed')!=-1?'delayed':raw.indexOf('overdue')!=-1?'overdue':'pending';
-      allData.push({ client:r[1]||'?', received:r[2]||'', subject:r[3]||'', link:r[4]||'', replied:r[5]||null, responseHrs:hrs, status:s, resolvedAt:r[8]||'', requestedBy:r[9]||'' });
+      allData.push({ client:r[1]||'?', received:r[2]||'', subject:r[3]||'', link:r[4]||'', replied:r[5]||null, responseHrs:hrs, status:s, resolvedAt:r[8]||'', requestedBy:r[9]||'', blairInvolved:(r[10]||'').toUpperCase()==='TRUE' });
     }
     render();
     scheduleRefresh();
@@ -1080,10 +1080,7 @@ function rptTrunc(str, max) {
 /* ── Blair Forrest Filter & Tab ── */
 function getBlairEmails(data) {
   return data.filter(function(d) {
-    var name = (d.requestedBy || '').toLowerCase();
-    var subj = (d.subject || '').toLowerCase();
-    var client = (d.client || '').toLowerCase();
-    return name.indexOf('blair') !== -1 || subj.indexOf('blair') !== -1 || client.indexOf('blair') !== -1;
+    return d.blairInvolved === true;
   });
 }
 
