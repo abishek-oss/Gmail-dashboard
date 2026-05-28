@@ -309,6 +309,7 @@
 
     .donut-wrap { display: flex; flex-direction: column; align-items: center; gap: 14px; }
     .donut-canvas { width: 130px !important; height: 130px !important; }
+    .status-canvas { width: 100% !important; height: 260px !important; }
     .donut-legend { width: 100%; }
     .legend-row {
       display: flex; align-items: center; gap: 8px; font-size: 12px;
@@ -660,7 +661,7 @@ var STATUS_COLORS = {
 var STATUS_LABELS = { 'on-time':'On Time','delayed':'Delayed','overdue':'Overdue','pending':'Pending','resolved':'Resolved' };
 
 var allData = [], activeFilter = 'all', sortCol = 'received', sortDir = -1;
-var donutChart = null, refreshTimer = null, countdownTimer = null, nextRefresh = null;
+var statusChart = null, refreshTimer = null, countdownTimer = null, nextRefresh = null;
 var searchClient = '', dateFrom = '', dateTo = '', activeTab = 'overview';
 var requesterDetailName = null;
 
@@ -822,14 +823,17 @@ function render() {
 
     '<div class="charts-row">' +
       '<div class="glass-card">' +
+        '<div class="card-header"><div class="card-title">Status Breakdown</div></div>' +
+        '<div class="donut-wrap"><canvas class="status-canvas" id="status-c"></canvas>' +
+        '<div class="donut-legend">'+legend+'</div></div>' +
+      '</div>' +
+    '</div>' +
+
+    '<div class="charts-row">' +
+      '<div class="glass-card">' +
         '<div class="card-header"><div class="card-title">Response Time by Client</div>' +
         '<div class="card-badge">'+(isFiltered()?'FILTERED':'ALL TIME')+'</div></div>' +
         (bars || '<div class="empty-state">No replied emails in range</div>') +
-      '</div>' +
-      '<div class="glass-card">' +
-        '<div class="card-header"><div class="card-title">Status Breakdown</div></div>' +
-        '<div class="donut-wrap"><canvas class="donut-canvas" id="donut-c"></canvas>' +
-        '<div class="donut-legend">'+legend+'</div></div>' +
       '</div>' +
     '</div>' +
 
@@ -870,7 +874,7 @@ function render() {
   renderTable(fd);
   if (activeTab === 'requesters') renderRequesters(fd);
   if (activeTab === 'blair') renderBlairTab(fd);
-  drawDonut(onTime, delayed, overdue, pending, resolved);
+  drawStatusChart(onTime, delayed, overdue, pending, resolved);
 }
 
 function sCard(type, icon, label, val, sub, delta) {
@@ -1089,13 +1093,14 @@ function sortBy(col) {
 }
 
 // drawDonut reads directly from STATUS_COLORS — chart & legend always match
-function drawDonut(onTime, delayed, overdue, pending, resolved) {
+function drawStatusChart(onTime, delayed, overdue, pending, resolved) {
   setTimeout(function() {
-    var ctx = document.getElementById('donut-c'); if (!ctx) return;
-    if (donutChart) { donutChart.destroy(); donutChart=null; }
-    donutChart = new Chart(ctx, {
-      type: 'doughnut',
-      data: { datasets: [{ data: [onTime, delayed, overdue, pending, resolved],
+    var ctx = document.getElementById('status-c'); if (!ctx) return;
+    if (statusChart) { statusChart.destroy(); statusChart=null; }
+    statusChart = new Chart(ctx, {
+      type: 'bar',
+      data: { labels: ['On Time','Delayed','Overdue','Pending','Resolved'], datasets: [{
+        data: [onTime, delayed, overdue, pending, resolved],
         backgroundColor: [
           STATUS_COLORS['on-time'],
           STATUS_COLORS['delayed'],
@@ -1103,8 +1108,17 @@ function drawDonut(onTime, delayed, overdue, pending, resolved) {
           STATUS_COLORS['pending'],
           STATUS_COLORS['resolved']
         ],
-        borderWidth: 2, borderColor: '#0c0c18', hoverOffset: 5 }] },
-      options: { cutout:'74%', plugins:{ legend:{ display:false } }, animation:{ duration:700, easing:'easeInOutQuart' } }
+        borderWidth: 0
+      }] },
+      options: {
+        indexAxis: 'y',
+        scales: {
+          x: { beginAtZero: true, ticks: { color: 'rgba(226,232,240,0.85)' }, grid: { color: 'rgba(255,255,255,0.06)' } },
+          y: { ticks: { color: 'rgba(226,232,240,0.85)' }, grid: { display: false } }
+        },
+        plugins: { legend: { display: false } },
+        animation: { duration: 700, easing: 'easeInOutQuart' }
+      }
     });
   }, 80);
 }
