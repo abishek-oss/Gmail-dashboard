@@ -7,7 +7,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
-  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <style>
@@ -42,7 +41,6 @@
       overflow-x: hidden;
     }
 
-    /* ── GRID BACKGROUND */
     body::before {
       content: '';
       position: fixed;
@@ -55,7 +53,6 @@
       z-index: 0;
     }
 
-    /* ── GLOW ORBS */
     .orb {
       position: fixed;
       border-radius: 50%;
@@ -66,7 +63,6 @@
     .orb-1 { width: 600px; height: 600px; background: rgba(125,211,252,0.05); top: -200px; right: -100px; }
     .orb-2 { width: 400px; height: 400px; background: rgba(212,175,55,0.04); bottom: 0; left: -100px; }
 
-    /* ── NAV */
     nav {
       position: sticky; top: 0; z-index: 100;
       display: flex; align-items: center; justify-content: space-between;
@@ -119,10 +115,8 @@
     }
     .btn-refresh:hover { background: var(--surface2); color: var(--text); border-color: var(--accent); box-shadow: 0 0 12px var(--glow); }
 
-    /* ── MAIN */
     .main { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; position: relative; z-index: 1; }
 
-    /* ── PAGE HEADER */
     .page-header { margin-bottom: 2rem; }
     .page-title {
       font-family: 'Syne', sans-serif;
@@ -134,7 +128,6 @@
     .page-sub { font-size: 13px; color: var(--text3); margin-top: 4px; font-family: 'DM Mono', monospace; letter-spacing: 0.02em; }
     .page-sub span { color: var(--accent2); }
 
-    /* ── FILTERS */
     .filters-panel {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -169,7 +162,6 @@
       border: 1px solid rgba(125,211,252,0.25); margin-left: 8px;
     }
 
-    /* ── 3D STAT CARDS */
     .stats-grid {
       display: grid;
       grid-template-columns: repeat(4, minmax(0,1fr));
@@ -253,7 +245,6 @@
     .stat-delta.mid  { background: var(--amber-dim); color: var(--amber); }
     .stat-delta.down { background: var(--red-dim);   color: var(--red); }
 
-    /* ── CHARTS ROW */
     .charts-row { display: grid; grid-template-columns: 1fr 300px; gap: 14px; margin-bottom: 1.5rem; }
 
     .glass-card {
@@ -275,14 +266,12 @@
     .card-title { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: -0.01em; }
     .card-badge { font-size: 10px; font-family: 'DM Mono', monospace; padding: 3px 8px; border-radius: 999px; background: var(--surface2); color: var(--text3); border: 1px solid var(--border); }
 
-    /* BAR CHART */
     .bar-item { display: flex; align-items: center; gap: 10px; margin-bottom: 11px; }
     .bar-name { font-size: 12px; color: var(--text2); width: 120px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: Verdana, sans-serif; }
     .bar-track { flex: 1; height: 6px; background: rgba(255,255,255,0.05); border-radius: 3px; overflow: hidden; }
     .bar-fill { height: 100%; border-radius: 3px; transition: width 0.8s cubic-bezier(0.34,1.56,0.64,1); }
     .bar-num { font-size: 11px; color: var(--text3); width: 40px; text-align: right; font-family: 'DM Mono', monospace; }
 
-    /* DONUT */
     .donut-wrap { display: flex; flex-direction: column; align-items: center; gap: 16px; }
     .donut-canvas { width: 140px !important; height: 140px !important; }
     .donut-legend { width: 100%; }
@@ -291,7 +280,6 @@
     .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
     .legend-count { margin-left: auto; font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 500; color: var(--text); }
 
-    /* ── TABS */
     .tab-bar { display: flex; gap: 0; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border); }
     .tab-btn {
       font-size: 13px; font-family: Verdana, sans-serif; font-weight: 500;
@@ -302,7 +290,6 @@
     .tab-btn:hover { color: var(--text2); }
     .tab-btn.active { color: var(--accent2); border-bottom-color: var(--accent); font-weight: 600; }
 
-    /* ── STATUS FILTER PILLS */
     .status-filters { display: flex; gap: 6px; flex-wrap: wrap; }
     .sfil {
       font-size: 11px; font-family: 'DM Mono', monospace;
@@ -314,7 +301,6 @@
     .sfil:hover { color: var(--text2); border-color: var(--border2); }
     .sfil.active { background: var(--accent); color: #fff; border-color: var(--accent); box-shadow: 0 0 12px var(--glow); }
 
-    /* ── TABLE */
     .table-wrap {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -353,7 +339,6 @@
     .td-subject { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .td-mono { font-family: 'DM Mono', monospace; font-size: 12px; }
 
-    /* PILLS */
     .pill { display: inline-flex; align-items: center; font-size: 10px; font-family: 'DM Mono', monospace; font-weight: 500; padding: 3px 9px; border-radius: 999px; letter-spacing: 0.03em; white-space: nowrap; }
     .pill.on-time  { background: var(--green-dim);  color: var(--green);  border: 1px solid rgba(16,185,129,0.25); }
     .pill.delayed  { background: var(--amber-dim);  color: var(--amber);  border: 1px solid rgba(245,158,11,0.25); }
@@ -361,15 +346,12 @@
     .pill.pending  { background: var(--blue-dim);   color: var(--accent2);border: 1px solid rgba(59,130,246,0.25); }
     .pill.resolved { background: var(--green-dim); color: var(--green); border: 1px solid rgba(16,185,129,0.25); }
 
-    /* REQUESTER TABLE */
     .req-name { font-weight: 600; color: var(--text); }
     .req-total { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800; text-align: center; color: #bae6fd; }
     .req-metric { font-family: 'DM Mono', monospace; font-size: 12px; text-align: center; }
 
-    /* STATES */
     .empty-state { text-align: center; padding: 4rem 1rem; color: var(--text3); font-family: 'DM Mono', monospace; font-size: 13px; }
 
-    /* ── BLAIR FORREST TAB */
     .blair-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 1.25rem; }
     .blair-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800; letter-spacing: -0.02em; color: var(--text); }
     .blair-sub { font-size: 12px; font-family: 'DM Mono', monospace; color: var(--text3); margin-top: 2px; }
@@ -401,7 +383,6 @@
 
     .error-banner { background: var(--red-dim); border: 1px solid rgba(239,68,68,0.25); border-radius: 10px; padding: 12px 16px; font-size: 13px; color: var(--red); margin-bottom: 1.25rem; font-family: 'DM Mono', monospace; }
 
-    /* SETUP SCREEN */
     .setup-wrap { max-width: 520px; margin: 6rem auto; padding: 0 1.5rem; text-align: center; position: relative; z-index: 1; }
     .setup-logo { width: 64px; height: 64px; background: linear-gradient(135deg, #d4af37, #b8960c); border-radius: 18px; display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800; color: #000; margin: 0 auto 1.5rem; box-shadow: 0 0 40px rgba(212,175,55,0.3); }
     .setup-title { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 8px; }
@@ -421,7 +402,6 @@
     @media (max-width: 900px) { .stats-grid { grid-template-columns: repeat(2,1fr); } .charts-row { grid-template-columns: 1fr; } }
     @media (max-width: 600px) { .stats-grid { grid-template-columns: 1fr 1fr; } .filters-panel { flex-direction: column; } }
 
-    /* ── LOGIN SCREEN */
     #login-screen {
       position: fixed; inset: 0; z-index: 9999;
       background: var(--bg);
@@ -465,15 +445,9 @@
       color: #000; cursor: pointer; transition: all 0.2s;
       box-shadow: 0 4px 20px rgba(212,175,55,0.3);
     }
-    .btn-google:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 30px rgba(212,175,55,0.4);
-    }
+    .btn-google:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(212,175,55,0.4); }
     .btn-google svg { width: 20px; height: 20px; }
-    .login-error {
-      font-size: 12px; color: var(--red); margin-top: 1rem;
-      font-family: 'DM Mono', monospace;
-    }
+    .login-error { font-size: 12px; color: var(--red); margin-top: 1rem; font-family: 'DM Mono', monospace; }
     .btn-signout {
       font-size: 11px; font-family: 'DM Mono', monospace; font-weight: 500;
       padding: 5px 12px; border-radius: 8px;
@@ -491,17 +465,9 @@
       display: inline-flex; align-items: center; gap: 6px;
     }
     .btn-export:hover { background: rgba(16,185,129,0.2); border-color: rgba(16,185,129,0.5); box-shadow: 0 0 12px rgba(16,185,129,0.15); }
-    .user-info {
-      display: flex; align-items: center; gap: 8px;
-    }
-    .user-avatar {
-      width: 26px; height: 26px; border-radius: 50%;
-      border: 1px solid var(--border2);
-    }
-    .user-name {
-      font-size: 11px; color: var(--text2); font-family: 'DM Mono', monospace;
-      max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-    }
+    .user-info { display: flex; align-items: center; gap: 8px; }
+    .user-avatar { width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--border2); }
+    .user-name { font-size: 11px; color: var(--text2); font-family: 'DM Mono', monospace; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   </style>
 </head>
 <body>
@@ -525,7 +491,7 @@
     </div>
   </div>
 
-  <!-- DASHBOARD (hidden until authenticated) -->
+  <!-- DASHBOARD -->
   <div id="dashboard-content" style="display:none;">
   <div class="orb orb-1"></div>
   <div class="orb orb-2"></div>
@@ -540,13 +506,18 @@
       <span class="nav-pill">PRICING INTELLIGENCE</span>
       <button class="btn-refresh" onclick="manualRefresh()">↻ Refresh</button>
       <button class="btn-export" onclick="exportReport()">📊 Export Report</button>
+      <!-- ── CHANGE 3: Send Weekly Report button ── -->
+      <button class="btn-export" onclick="triggerWeeklyReport(this)"
+        style="border-color:rgba(125,211,252,0.3);background:rgba(125,211,252,0.1);color:var(--accent2);">
+        📅 Send Weekly Report
+      </button>
       <div class="user-info" id="user-info"></div>
       <button class="btn-signout" id="btn-signout" onclick="signOutUser()">Sign Out</button>
     </div>
   </nav>
 
   <div id="app"></div>
-  </div><!-- /dashboard-content -->
+  </div>
 
 <!-- Firebase Auth -->
 <script>
@@ -618,8 +589,6 @@ var allData = [], activeFilter = 'all', sortCol = 'received', sortDir = -1;
 var donutChart = null, refreshTimer = null, countdownTimer = null, nextRefresh = null;
 var searchClient = '', dateFrom = '', dateTo = '', activeTab = 'overview';
 
-// Data loading is now triggered by Firebase auth state change
-
 function showDashboard() {
   document.getElementById('app').innerHTML =
     '<div class="main">' +
@@ -632,6 +601,10 @@ function showDashboard() {
     '</div>';
 }
 
+// ── CHANGE 1: loadData now builds a column-name map from the header row.
+//    This means it never breaks if columns are reordered, and correctly
+//    finds Blair Involved, Reopened At, and Reopen Resolution Time (hrs)
+//    regardless of which position they end up in.
 async function loadData() {
   clearError();
   var url = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tqx=out:csv&sheet=Tracker';
@@ -642,19 +615,48 @@ async function loadData() {
     if (csv.includes('<!DOCTYPE')) throw new Error('Sheet not found or not public.');
     var rows = parseCSV(csv);
     if (rows.length < 2) throw new Error('Sheet is empty — run backfillPricingRequests() first.');
+
+    // Build column index map from header row
+    var col = {};
+    rows[0].forEach(function(h, i) { col[h.replace(/"/g, '').trim()] = i; });
+
     allData = [];
     for (var i = 1; i < rows.length; i++) {
-      var r = rows[i]; if (!r[1]) continue;
-      var hrs = r[6] !== '' ? parseFloat(r[6]) : null;
-      var raw = (r[7]||'').toLowerCase();
-      var s = raw.indexOf('resolved')!=-1?'resolved':raw.indexOf('on time')!=-1?'on-time':raw.indexOf('delayed')!=-1?'delayed':raw.indexOf('overdue')!=-1?'overdue':'pending';
-      allData.push({ client:r[1]||'?', received:r[2]||'', subject:r[3]||'', link:r[4]||'', replied:r[5]||null, responseHrs:hrs, status:s, resolvedAt:r[8]||'', requestedBy:r[9]||'', blairInvolved:(r[10]||'').toUpperCase()==='TRUE' });
+      var r = rows[i];
+      if (!r[col['Client']]) continue;
+
+      var hrs = col['Response Time (hrs)'] !== undefined && r[col['Response Time (hrs)']] !== ''
+        ? parseFloat(r[col['Response Time (hrs)']]) : null;
+
+      var reopenHrs = col['Reopen Resolution Time (hrs)'] !== undefined && r[col['Reopen Resolution Time (hrs)']] !== ''
+        ? parseFloat(r[col['Reopen Resolution Time (hrs)']]) : null;
+
+      var raw = (r[col['Status']] || '').toLowerCase();
+      var s = raw.indexOf('resolved') !== -1 ? 'resolved'
+            : raw.indexOf('on time')  !== -1 ? 'on-time'
+            : raw.indexOf('delayed')  !== -1 ? 'delayed'
+            : raw.indexOf('overdue')  !== -1 ? 'overdue' : 'pending';
+
+      allData.push({
+        client:              r[col['Client']]              || '?',
+        received:            r[col['Received']]            || '',
+        subject:             r[col['Subject']]             || '',
+        link:                r[col['Gmail Link']]          || '',
+        replied:             r[col['Replied At']]          || null,
+        responseHrs:         hrs,
+        status:              s,
+        resolvedAt:          r[col['Resolved At']]         || '',
+        requestedBy:         r[col['Requested By']]        || '',
+        reopenedAt:          col['Reopened At'] !== undefined          ? (r[col['Reopened At']]                    || '') : '',
+        reopenResolutionHrs: reopenHrs,
+        blairInvolved:       col['Blair Involved'] !== undefined       ? (r[col['Blair Involved']] || '').toUpperCase() === 'TRUE' : false
+      });
     }
     render();
     scheduleRefresh();
   } catch(e) {
     showError(e.message);
-    document.getElementById('content').innerHTML = '<div class="empty-state">'+e.message+'</div>';
+    document.getElementById('content').innerHTML = '<div class="empty-state">' + e.message + '</div>';
   }
 }
 
@@ -664,9 +666,9 @@ function scheduleRefresh() {
   nextRefresh = Date.now() + REFRESH_MS;
   refreshTimer = setTimeout(loadData, REFRESH_MS);
   countdownTimer = setInterval(function() {
-    var s = Math.max(0, Math.round((nextRefresh-Date.now())/1000));
+    var s = Math.max(0, Math.round((nextRefresh - Date.now()) / 1000));
     var el = document.getElementById('refresh-indicator');
-    if (el) el.textContent = 'refreshes in ' + (s>=60?Math.floor(s/60)+'m':s+'s');
+    if (el) el.textContent = 'refreshes in ' + (s >= 60 ? Math.floor(s / 60) + 'm' : s + 's');
   }, 1000);
 }
 
@@ -676,113 +678,116 @@ function getFiltered() {
   return allData.filter(function(d) {
     if (activeFilter !== 'all' && d.status !== activeFilter) return false;
     if (searchClient && d.client.toLowerCase().indexOf(searchClient.toLowerCase()) === -1) return false;
-    if (dateFrom) { var rd=new Date(d.received),fd=new Date(dateFrom); if(!isNaN(rd)&&!isNaN(fd)&&rd<fd) return false; }
-    if (dateTo)   { var rd2=new Date(d.received),td=new Date(dateTo+'T23:59:59'); if(!isNaN(rd2)&&!isNaN(td)&&rd2>td) return false; }
+    if (dateFrom) { var rd = new Date(d.received), fd = new Date(dateFrom); if (!isNaN(rd) && !isNaN(fd) && rd < fd) return false; }
+    if (dateTo)   { var rd2 = new Date(d.received), td = new Date(dateTo + 'T23:59:59'); if (!isNaN(rd2) && !isNaN(td) && rd2 > td) return false; }
     return true;
   });
 }
 
-function isFiltered() { return searchClient||dateFrom||dateTo; }
+function isFiltered() { return searchClient || dateFrom || dateTo; }
+
 function clearFilters() {
-  searchClient=''; dateFrom=''; dateTo='';
-  var sc=document.getElementById('sc'); if(sc) sc.value='';
-  var df=document.getElementById('df'); if(df) df.value='';
-  var dt=document.getElementById('dt'); if(dt) dt.value='';
+  searchClient = ''; dateFrom = ''; dateTo = '';
+  var sc = document.getElementById('sc'); if (sc) sc.value = '';
+  var df = document.getElementById('df'); if (df) df.value = '';
+  var dt = document.getElementById('dt'); if (dt) dt.value = '';
   render();
 }
 
 function render() {
   var fd = getFiltered();
-  var replied  = fd.filter(function(d){return d.responseHrs!==null;});
-  var onTime   = fd.filter(function(d){return d.status==='on-time';}).length;
-  var delayed  = fd.filter(function(d){return d.status==='delayed';}).length;
-  var overdue  = fd.filter(function(d){return d.status==='overdue';}).length;
-  var pending  = fd.filter(function(d){return d.status==='pending';}).length;
-  var resolved = fd.filter(function(d){return d.status==='resolved';}).length;
-  var avgHrs   = replied.length ? Math.round(replied.reduce(function(s,d){return s+d.responseHrs;},0)/replied.length*10)/10 : 0;
-  var slaRate  = replied.length ? Math.round(onTime/replied.length*100) : 0;
+  var replied  = fd.filter(function(d) { return d.responseHrs !== null; });
+  var onTime   = fd.filter(function(d) { return d.status === 'on-time'; }).length;
+  var delayed  = fd.filter(function(d) { return d.status === 'delayed'; }).length;
+  var overdue  = fd.filter(function(d) { return d.status === 'overdue'; }).length;
+  var pending  = fd.filter(function(d) { return d.status === 'pending'; }).length;
+  var resolved = fd.filter(function(d) { return d.status === 'resolved'; }).length;
+  var avgHrs   = replied.length ? Math.round(replied.reduce(function(s, d) { return s + d.responseHrs; }, 0) / replied.length * 10) / 10 : 0;
+  var slaRate  = replied.length ? Math.round(onTime / replied.length * 100) : 0;
 
-  var allOT=allData.filter(function(d){return d.status==='on-time';}).length;
-  var allDe=allData.filter(function(d){return d.status==='delayed';}).length;
-  var allOv=allData.filter(function(d){return d.status==='overdue';}).length;
-  var allPe=allData.filter(function(d){return d.status==='pending';}).length;
-  var allRe=allData.filter(function(d){return d.status==='resolved';}).length;
+  var allOT = allData.filter(function(d) { return d.status === 'on-time'; }).length;
+  var allDe = allData.filter(function(d) { return d.status === 'delayed'; }).length;
+  var allOv = allData.filter(function(d) { return d.status === 'overdue'; }).length;
+  var allPe = allData.filter(function(d) { return d.status === 'pending'; }).length;
+  var allRe = allData.filter(function(d) { return d.status === 'resolved'; }).length;
 
-  var barData = replied.slice().sort(function(a,b){return b.responseHrs-a.responseHrs;}).slice(0,7);
+  var barData = replied.slice().sort(function(a, b) { return b.responseHrs - a.responseHrs; }).slice(0, 7);
   var maxH = barData.length ? barData[0].responseHrs : 1;
-  var bars = barData.map(function(d){
-    var pct = Math.round(d.responseHrs/maxH*100);
-    return '<div class="bar-item"><div class="bar-name" title="'+esc(d.client)+'">'+esc(d.client)+'</div>'+
-      '<div class="bar-track"><div class="bar-fill" style="width:'+pct+'%;background:'+STATUS_COLORS[d.status]+';"></div></div>'+
-      '<div class="bar-num">'+d.responseHrs+'h</div></div>';
+  var bars = barData.map(function(d) {
+    var pct = Math.round(d.responseHrs / maxH * 100);
+    return '<div class="bar-item"><div class="bar-name" title="' + esc(d.client) + '">' + esc(d.client) + '</div>' +
+      '<div class="bar-track"><div class="bar-fill" style="width:' + pct + '%;background:' + STATUS_COLORS[d.status] + ';"></div></div>' +
+      '<div class="bar-num">' + d.responseHrs + 'h</div></div>';
   }).join('');
 
-  var legend = [['On Time',onTime,'on-time'],['Delayed',delayed,'delayed'],['Overdue',overdue,'overdue'],['Pending',pending,'pending'],['Resolved',resolved,'resolved']].map(function(l){
-    return '<div class="legend-row"><div class="legend-dot" style="background:'+STATUS_COLORS[l[2]]+'"></div>'+l[0]+'<span class="legend-count">'+l[1]+'</span></div>';
+  var legend = [
+    ['On Time', onTime, 'on-time'], ['Delayed', delayed, 'delayed'],
+    ['Overdue', overdue, 'overdue'], ['Pending', pending, 'pending'], ['Resolved', resolved, 'resolved']
+  ].map(function(l) {
+    return '<div class="legend-row"><div class="legend-dot" style="background:' + STATUS_COLORS[l[2]] + '"></div>' + l[0] + '<span class="legend-count">' + l[1] + '</span></div>';
   }).join('');
 
-  var filterBadge = isFiltered() ? '<span class="filter-active-badge">'+fd.length+' / '+allData.length+'</span>' : '';
-  var slaClass = slaRate>=80?'up':slaRate>=50?'mid':'down';
+  var filterBadge = isFiltered() ? '<span class="filter-active-badge">' + fd.length + ' / ' + allData.length + '</span>' : '';
+  var slaClass = slaRate >= 80 ? 'up' : slaRate >= 50 ? 'mid' : 'down';
 
   document.getElementById('content').innerHTML =
-    // FILTERS
     '<div class="filters-panel">' +
       '<div class="filter-group"><div class="filter-label">Search client</div>' +
-        '<input class="filter-input" id="sc" type="text" placeholder="e.g. Dupray…" value="'+esc(searchClient)+'" oninput="searchClient=this.value;render();" /></div>' +
+        '<input class="filter-input" id="sc" type="text" placeholder="e.g. Dupray…" value="' + esc(searchClient) + '" oninput="searchClient=this.value;render();" /></div>' +
       '<div class="filter-group"><div class="filter-label">Received from</div>' +
-        '<input class="filter-input" id="df" type="date" value="'+dateFrom+'" onchange="dateFrom=this.value;render();" /></div>' +
+        '<input class="filter-input" id="df" type="date" value="' + dateFrom + '" onchange="dateFrom=this.value;render();" /></div>' +
       '<div class="filter-sep">→</div>' +
       '<div class="filter-group"><div class="filter-label">Received to</div>' +
-        '<input class="filter-input" id="dt" type="date" value="'+dateTo+'" onchange="dateTo=this.value;render();" /></div>' +
+        '<input class="filter-input" id="dt" type="date" value="' + dateTo + '" onchange="dateTo=this.value;render();" /></div>' +
       (isFiltered() ? '<button class="btn-clear-filters" onclick="clearFilters()">✕ Clear</button>' : '') +
     '</div>' +
 
-    // STATS
     '<div class="stats-grid">' +
-      sCard('primary','📦','Total Requests',fd.length, isFiltered()?allData.length+' total':'all time', null) +
-      sCard('warning','⚡','Avg Response',avgHrs+'h', isFiltered()?'filtered range':'replied emails', null) +
-      sCard('success','🎯','SLA Rate',slaRate+'%', isFiltered()?'filtered range':'≤4h target', slaClass) +
-      sCard('danger', '⏳','Pending',pending,'awaiting reply', pending>0?'mid':null) +
+      sCard('primary', '📦', 'Total Requests', fd.length, isFiltered() ? allData.length + ' total' : 'all time', null) +
+      sCard('warning', '⚡', 'Avg Response', avgHrs + 'h', isFiltered() ? 'filtered range' : 'replied emails', null) +
+      sCard('success', '🎯', 'SLA Rate', slaRate + '%', isFiltered() ? 'filtered range' : '≤4h target', slaClass) +
+      sCard('danger',  '⏳', 'Pending', pending, 'awaiting reply', pending > 0 ? 'mid' : null) +
     '</div>' +
 
-    // CHARTS
     '<div class="charts-row">' +
       '<div class="glass-card">' +
-        '<div class="card-header"><div class="card-title">Response Time by Client</div><div class="card-badge">'+(isFiltered()?'FILTERED':'ALL TIME')+'</div></div>' +
-        (bars||'<div class="empty-state">No replied emails in range</div>') +
+        '<div class="card-header"><div class="card-title">Response Time by Client</div><div class="card-badge">' + (isFiltered() ? 'FILTERED' : 'ALL TIME') + '</div></div>' +
+        (bars || '<div class="empty-state">No replied emails in range</div>') +
       '</div>' +
       '<div class="glass-card">' +
         '<div class="card-header"><div class="card-title">Status Breakdown</div></div>' +
-        '<div class="donut-wrap"><canvas class="donut-canvas" id="donut-c"></canvas><div class="donut-legend">'+legend+'</div></div>' +
+        '<div class="donut-wrap"><canvas class="donut-canvas" id="donut-c"></canvas><div class="donut-legend">' + legend + '</div></div>' +
       '</div>' +
     '</div>' +
 
-    // TABS + TABLE
     '<div class="tab-bar">' +
-      '<button class="tab-btn'+(activeTab==='overview'?' active':'')+'" onclick="switchTab(\'overview\')">All Requests'+filterBadge+'</button>' +
-      '<button class="tab-btn'+(activeTab==='requesters'?' active':'')+'" onclick="switchTab(\'requesters\')">By Requester</button>' +
-      '<button class="tab-btn'+(activeTab==='blair'?' active':'')+'" onclick="switchTab(\'blair\')">Blair Forrest</button>' +
+      '<button class="tab-btn' + (activeTab === 'overview'    ? ' active' : '') + '" onclick="switchTab(\'overview\')">All Requests' + filterBadge + '</button>' +
+      '<button class="tab-btn' + (activeTab === 'requesters'  ? ' active' : '') + '" onclick="switchTab(\'requesters\')">By Requester</button>' +
+      '<button class="tab-btn' + (activeTab === 'blair'       ? ' active' : '') + '" onclick="switchTab(\'blair\')">Blair Forrest</button>' +
     '</div>' +
 
-    '<div id="tab-overview" '+(activeTab!=='overview'?'style="display:none"':'')+'>'+
+    '<div id="tab-overview" '    + (activeTab !== 'overview'   ? 'style="display:none"' : '') + '>' +
       '<div class="table-wrap">' +
         '<div class="table-topbar">' +
-          '<div class="table-title">Pricing Requests '+filterBadge+'</div>' +
+          '<div class="table-title">Pricing Requests ' + filterBadge + '</div>' +
           '<div class="status-filters">' +
-            sfil('all','All ('+allData.length+')') + sfil('on-time','✓ On Time ('+allOT+')') +
-            sfil('delayed','⚠ Delayed ('+allDe+')') + sfil('overdue','✕ Overdue ('+allOv+')') +
-            sfil('pending','○ Pending ('+allPe+')') + sfil('resolved','● Resolved ('+allRe+')') +
+            sfil('all', 'All (' + allData.length + ')') +
+            sfil('on-time',  '✓ On Time ('  + allOT + ')') +
+            sfil('delayed',  '⚠ Delayed ('  + allDe + ')') +
+            sfil('overdue',  '✕ Overdue ('  + allOv + ')') +
+            sfil('pending',  '○ Pending ('  + allPe + ')') +
+            sfil('resolved', '● Resolved (' + allRe + ')') +
           '</div>' +
         '</div>' +
         '<div id="tbl-body"></div>' +
       '</div>' +
     '</div>' +
 
-    '<div id="tab-requesters" '+(activeTab!=='requesters'?'style="display:none"':'')+'>'+
+    '<div id="tab-requesters" ' + (activeTab !== 'requesters' ? 'style="display:none"' : '') + '>' +
       '<div id="req-body"></div>' +
     '</div>' +
 
-    '<div id="tab-blair" '+(activeTab!=='blair'?'style="display:none"':'')+'>'+
+    '<div id="tab-blair" '       + (activeTab !== 'blair'      ? 'style="display:none"' : '') + '>' +
       '<div id="blair-body"></div>' +
     '</div>';
 
@@ -796,218 +801,230 @@ function render() {
 }
 
 function sCard(type, icon, label, val, sub, delta) {
-  var d = delta ? '<div class="stat-delta '+(delta==='up'?'up':delta==='mid'?'mid':'down')+'">'+(delta==='up'?'↑ HEALTHY':delta==='mid'?'⚠ WATCH':'↓ LOW')+'</div>' : '';
-  return '<div class="stat-card '+type+'" onmousemove="tilt3d(this,event)" onmouseleave="untilt(this)">'+
-    '<div class="stat-icon">'+icon+'</div>'+
-    '<div class="stat-label">'+label+'</div>'+
-    '<div class="stat-value">'+val+'</div>'+
-    '<div class="stat-sub">'+sub+'</div>'+d+
+  var d = delta ? '<div class="stat-delta ' + (delta === 'up' ? 'up' : delta === 'mid' ? 'mid' : 'down') + '">' + (delta === 'up' ? '↑ HEALTHY' : delta === 'mid' ? '⚠ WATCH' : '↓ LOW') + '</div>' : '';
+  return '<div class="stat-card ' + type + '" onmousemove="tilt3d(this,event)" onmouseleave="untilt(this)">' +
+    '<div class="stat-icon">' + icon + '</div>' +
+    '<div class="stat-label">' + label + '</div>' +
+    '<div class="stat-value">' + val + '</div>' +
+    '<div class="stat-sub">' + sub + '</div>' + d +
   '</div>';
 }
 
 function sfil(f, label) {
-  return '<button class="sfil'+(activeFilter===f?' active':'')+'" onclick="setFilter(\''+f+'\')">'+label+'</button>';
+  return '<button class="sfil' + (activeFilter === f ? ' active' : '') + '" onclick="setFilter(\'' + f + '\')">' + label + '</button>';
 }
 
-function setFilter(f) { activeFilter=f; render(); }
+function setFilter(f) { activeFilter = f; render(); }
 
 function switchTab(t) {
   activeTab = t;
   var ov = document.getElementById('tab-overview');
   var rq = document.getElementById('tab-requesters');
   var bl = document.getElementById('tab-blair');
-  if (ov) ov.style.display = t==='overview' ? '' : 'none';
-  if (rq) rq.style.display = t==='requesters' ? '' : 'none';
-  if (bl) bl.style.display = t==='blair' ? '' : 'none';
+  if (ov) ov.style.display = t === 'overview'    ? '' : 'none';
+  if (rq) rq.style.display = t === 'requesters'  ? '' : 'none';
+  if (bl) bl.style.display = t === 'blair'        ? '' : 'none';
   document.querySelectorAll('.tab-btn').forEach(function(b, i) {
-    b.classList.toggle('active', (i===0 && t==='overview') || (i===1 && t==='requesters') || (i===2 && t==='blair'));
+    b.classList.toggle('active', (i === 0 && t === 'overview') || (i === 1 && t === 'requesters') || (i === 2 && t === 'blair'));
   });
   if (t === 'requesters') renderRequesters(getFiltered());
   if (t === 'blair') renderBlairTab(getFiltered());
 }
 
+// ── CHANGE 2: renderTable now includes "1st Response" and "Reopen Res." columns
 function renderTable(fd) {
-  var sorted = fd.slice().sort(function(a,b){
-    var av = sortCol==='responseHrs'?(a.responseHrs||999999):sortCol==='received'?new Date(a.received):(a[sortCol]||'');
-    var bv = sortCol==='responseHrs'?(b.responseHrs||999999):sortCol==='received'?new Date(b.received):(b[sortCol]||'');
-    return av<bv?sortDir:av>bv?-sortDir:0;
+  var sorted = fd.slice().sort(function(a, b) {
+    var av = sortCol === 'responseHrs'         ? (a.responseHrs !== null         ? a.responseHrs         : 999999)
+           : sortCol === 'reopenResolutionHrs' ? (a.reopenResolutionHrs !== null ? a.reopenResolutionHrs : 999999)
+           : sortCol === 'received'            ? new Date(a.received)
+           : (a[sortCol] || '');
+    var bv = sortCol === 'responseHrs'         ? (b.responseHrs !== null         ? b.responseHrs         : 999999)
+           : sortCol === 'reopenResolutionHrs' ? (b.reopenResolutionHrs !== null ? b.reopenResolutionHrs : 999999)
+           : sortCol === 'received'            ? new Date(b.received)
+           : (b[sortCol] || '');
+    return av < bv ? sortDir : av > bv ? -sortDir : 0;
   });
-  var si = function(c){ return sortCol===c?(sortDir===-1?'↓':'↑'):'↕'; };
-  var sc = function(c){ return sortCol===c?'sorted':''; };
-  if (!sorted.length) { document.getElementById('tbl-body').innerHTML='<div class="empty-state">No records match your filters</div>'; return; }
-  var rows = sorted.map(function(d){
-    var recv = d.received ? new Date(d.received).toLocaleDateString('en-CA',{month:'short',day:'numeric',year:'numeric'}) : '—';
-    var subj = d.subject.replace(/^re:\s*/i,'');
-    var subjEl = d.link ? '<a href="'+esc(d.link)+'" target="_blank" style="color:var(--text2);text-decoration:none;" title="'+esc(d.subject)+'">'+esc(subj)+'</a>' : esc(subj);
+
+  var si = function(c) { return sortCol === c ? (sortDir === -1 ? '↓' : '↑') : '↕'; };
+  var sc = function(c) { return sortCol === c ? 'sorted' : ''; };
+
+  if (!sorted.length) {
+    document.getElementById('tbl-body').innerHTML = '<div class="empty-state">No records match your filters</div>';
+    return;
+  }
+
+  var rows = sorted.map(function(d) {
+    var recv   = d.received ? new Date(d.received).toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+    var subj   = d.subject.replace(/^re:\s*/i, '');
+    var subjEl = d.link
+      ? '<a href="' + esc(d.link) + '" target="_blank" style="color:var(--text2);text-decoration:none;" title="' + esc(d.subject) + '">' + esc(subj) + '</a>'
+      : esc(subj);
     var cn = esc(d.client);
-    if (searchClient) cn = cn.replace(new RegExp('('+searchClient.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi'),'<mark style="background:rgba(59,130,246,0.25);color:var(--accent2);border-radius:2px;padding:0 2px;">$1</mark>');
-    return '<tr>'+
-      '<td class="td-client">'+cn+'</td>'+
-      '<td class="td-subject">'+subjEl+'</td>'+
-      '<td class="td-mono" style="white-space:nowrap;">'+recv+'</td>'+
-      '<td class="td-mono">'+(d.responseHrs!==null?d.responseHrs+'h':'—')+'</td>'+
-      '<td><span class="pill '+d.status+'">'+STATUS_LABELS[d.status]+'</span></td>'+
-      '<td class="td-mono" style="font-size:11px;">'+(d.requestedBy?esc(d.requestedBy):'—')+'</td>'+
-      '<td class="td-mono" style="font-size:11px;color:var(--text3);">'+(d.resolvedAt||'—')+'</td>'+
+    if (searchClient) {
+      cn = cn.replace(
+        new RegExp('(' + searchClient.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi'),
+        '<mark style="background:rgba(59,130,246,0.25);color:var(--accent2);border-radius:2px;padding:0 2px;">$1</mark>'
+      );
+    }
+    return '<tr>' +
+      '<td class="td-client">'  + cn + '</td>' +
+      '<td class="td-subject">' + subjEl + '</td>' +
+      '<td class="td-mono" style="white-space:nowrap;">' + recv + '</td>' +
+      '<td class="td-mono">'    + (d.responseHrs !== null ? d.responseHrs + 'h' : '—') + '</td>' +
+      '<td class="td-mono">'    + (d.reopenResolutionHrs !== null ? '<span style="color:var(--amber);">' + d.reopenResolutionHrs + 'h</span>' : '—') + '</td>' +
+      '<td><span class="pill '  + d.status + '">' + STATUS_LABELS[d.status] + '</span></td>' +
+      '<td class="td-mono" style="font-size:11px;">'                     + (d.requestedBy ? esc(d.requestedBy) : '—') + '</td>' +
+      '<td class="td-mono" style="font-size:11px;color:var(--text3);">'  + (d.resolvedAt  || '—') + '</td>' +
     '</tr>';
   }).join('');
+
   document.getElementById('tbl-body').innerHTML =
-    '<table><thead><tr>'+
-      '<th class="'+sc('client')+'" onclick="sortBy(\'client\')">Client <span>'+si('client')+'</span></th>'+
-      '<th>Subject</th>'+
-      '<th class="'+sc('received')+'" onclick="sortBy(\'received\')">Received <span>'+si('received')+'</span></th>'+
-      '<th class="'+sc('responseHrs')+'" onclick="sortBy(\'responseHrs\')">Response <span>'+si('responseHrs')+'</span></th>'+
-      '<th>Status</th>'+
-      '<th class="'+sc('requestedBy')+'" onclick="sortBy(\'requestedBy\')">Requested by <span>'+si('requestedBy')+'</span></th>'+
-      '<th>Resolved at</th>'+
-    '</tr></thead><tbody>'+rows+'</tbody></table>';
+    '<table><thead><tr>' +
+      '<th class="' + sc('client')               + '" onclick="sortBy(\'client\')">Client <span>'               + si('client')               + '</span></th>' +
+      '<th>Subject</th>' +
+      '<th class="' + sc('received')             + '" onclick="sortBy(\'received\')">Received <span>'           + si('received')             + '</span></th>' +
+      '<th class="' + sc('responseHrs')          + '" onclick="sortBy(\'responseHrs\')">1st Response <span>'    + si('responseHrs')          + '</span></th>' +
+      '<th class="' + sc('reopenResolutionHrs')  + '" onclick="sortBy(\'reopenResolutionHrs\')">Reopen Res. <span>' + si('reopenResolutionHrs') + '</span></th>' +
+      '<th>Status</th>' +
+      '<th class="' + sc('requestedBy')          + '" onclick="sortBy(\'requestedBy\')">Requested by <span>'   + si('requestedBy')          + '</span></th>' +
+      '<th>Resolved at</th>' +
+    '</tr></thead><tbody>' + rows + '</tbody></table>';
 }
 
 function renderRequesters(fd) {
   var map = {};
-  fd.forEach(function(d){
-    var n = d.requestedBy||'Unknown';
-    if (!map[n]) map[n]={name:n,total:0,replied:[],onTime:0,delayed:0,overdue:0,pending:0,resolved:0};
+  fd.forEach(function(d) {
+    var n = d.requestedBy || 'Unknown';
+    if (!map[n]) map[n] = { name: n, total: 0, replied: [], onTime: 0, delayed: 0, overdue: 0, pending: 0, resolved: 0 };
     map[n].total++;
-    if (d.responseHrs!==null) map[n].replied.push(d.responseHrs);
-    map[n][d.status.replace('-','')]? map[n][d.status.replace('-','')]++ : null;
-    if (d.status==='on-time')  map[n].onTime++;
-    if (d.status==='delayed')  map[n].delayed++;
-    if (d.status==='overdue')  map[n].overdue++;
-    if (d.status==='pending')  map[n].pending++;
-    if (d.status==='resolved') map[n].resolved++;
+    if (d.responseHrs !== null) map[n].replied.push(d.responseHrs);
+    if (d.status === 'on-time')  map[n].onTime++;
+    if (d.status === 'delayed')  map[n].delayed++;
+    if (d.status === 'overdue')  map[n].overdue++;
+    if (d.status === 'pending')  map[n].pending++;
+    if (d.status === 'resolved') map[n].resolved++;
   });
-  var rows = Object.values(map).sort(function(a,b){return b.total-a.total;});
-  if (!rows.length) { document.getElementById('req-body').innerHTML='<div class="empty-state">No data</div>'; return; }
-  var trows = rows.map(function(r){
-    var avg = r.replied.length?Math.round(r.replied.reduce(function(s,v){return s+v;},0)/r.replied.length*10)/10:null;
-    var sla = r.replied.length?Math.round(r.onTime/r.replied.length*100):null;
-    var fastest = r.replied.length?Math.min.apply(null,r.replied):null;
-    var slowest = r.replied.length?Math.max.apply(null,r.replied):null;
-    var slaCol = sla!=null?(sla>=80?'var(--green)':sla>=50?'var(--amber)':'var(--red)'):'var(--text3)';
+  var rows = Object.values(map).sort(function(a, b) { return b.total - a.total; });
+  if (!rows.length) { document.getElementById('req-body').innerHTML = '<div class="empty-state">No data</div>'; return; }
+
+  var trows = rows.map(function(r) {
+    var avg     = r.replied.length ? Math.round(r.replied.reduce(function(s, v) { return s + v; }, 0) / r.replied.length * 10) / 10 : null;
+    var sla     = r.replied.length ? Math.round(r.onTime / r.replied.length * 100) : null;
+    var fastest = r.replied.length ? Math.min.apply(null, r.replied) : null;
+    var slowest = r.replied.length ? Math.max.apply(null, r.replied) : null;
+    var slaCol  = sla != null ? (sla >= 80 ? 'var(--green)' : sla >= 50 ? 'var(--amber)' : 'var(--red)') : 'var(--text3)';
     var breakdown = [
-      r.onTime   ?'<span style="color:var(--green);font-size:11px;">'+r.onTime+' on time</span>':'',
-      r.delayed  ?'<span style="color:var(--amber);font-size:11px;">'+r.delayed+' delayed</span>':'',
-      r.overdue  ?'<span style="color:var(--red);font-size:11px;">'+r.overdue+' overdue</span>':'',
-      r.pending  ?'<span style="color:var(--accent2);font-size:11px;">'+r.pending+' pending</span>':'',
-      r.resolved ?'<span style="color:var(--green);font-size:11px;">'+r.resolved+' resolved</span>':''
+      r.onTime   ? '<span style="color:var(--green);font-size:11px;">'   + r.onTime   + ' on time</span>'  : '',
+      r.delayed  ? '<span style="color:var(--amber);font-size:11px;">'   + r.delayed  + ' delayed</span>'  : '',
+      r.overdue  ? '<span style="color:var(--red);font-size:11px;">'     + r.overdue  + ' overdue</span>'  : '',
+      r.pending  ? '<span style="color:var(--accent2);font-size:11px;">' + r.pending  + ' pending</span>'  : '',
+      r.resolved ? '<span style="color:var(--green);font-size:11px;">'   + r.resolved + ' resolved</span>' : ''
     ].filter(Boolean).join('<span style="color:var(--border2);margin:0 4px;">·</span>');
-    return '<tr>'+
-      '<td class="req-name">'+esc(r.name)+'</td>'+
-      '<td class="req-total">'+r.total+'</td>'+
-      '<td class="req-metric">'+(avg!=null?avg+'h':'—')+'</td>'+
-      '<td class="req-metric" style="color:var(--green);">'+(fastest!=null?fastest+'h':'—')+'</td>'+
-      '<td class="req-metric" style="color:var(--red);">'+(slowest!=null?slowest+'h':'—')+'</td>'+
-      '<td class="req-metric" style="color:'+slaCol+';font-weight:700;">'+(sla!=null?sla+'%':'—')+'</td>'+
-      '<td style="font-size:12px;">'+breakdown+'</td>'+
+    return '<tr>' +
+      '<td class="req-name">'    + esc(r.name) + '</td>' +
+      '<td class="req-total">'   + r.total + '</td>' +
+      '<td class="req-metric">'  + (avg     != null ? avg     + 'h' : '—') + '</td>' +
+      '<td class="req-metric" style="color:var(--green);">' + (fastest != null ? fastest + 'h' : '—') + '</td>' +
+      '<td class="req-metric" style="color:var(--red);">'   + (slowest != null ? slowest + 'h' : '—') + '</td>' +
+      '<td class="req-metric" style="color:' + slaCol + ';font-weight:700;">' + (sla != null ? sla + '%' : '—') + '</td>' +
+      '<td style="font-size:12px;">' + breakdown + '</td>' +
     '</tr>';
   }).join('');
+
   document.getElementById('req-body').innerHTML =
-    '<div class="table-wrap"><div class="table-topbar"><div class="table-title">Requests by Sender'+(isFiltered()?'<span class="filter-active-badge">Filtered</span>':'')+'</div></div>'+
-    '<table><thead><tr>'+
-      '<th>Requested by</th><th style="text-align:center;">Total</th>'+
-      '<th style="text-align:center;">Avg response</th><th style="text-align:center;">Fastest</th>'+
-      '<th style="text-align:center;">Slowest</th><th style="text-align:center;">SLA rate</th><th>Breakdown</th>'+
-    '</tr></thead><tbody>'+trows+'</tbody></table></div>';
+    '<div class="table-wrap"><div class="table-topbar"><div class="table-title">Requests by Sender' +
+    (isFiltered() ? '<span class="filter-active-badge">Filtered</span>' : '') + '</div></div>' +
+    '<table><thead><tr>' +
+      '<th>Requested by</th><th style="text-align:center;">Total</th>' +
+      '<th style="text-align:center;">Avg response</th><th style="text-align:center;">Fastest</th>' +
+      '<th style="text-align:center;">Slowest</th><th style="text-align:center;">SLA rate</th><th>Breakdown</th>' +
+    '</tr></thead><tbody>' + trows + '</tbody></table></div>';
 }
 
 function sortBy(col) {
-  if (sortCol===col) sortDir=-sortDir; else { sortCol=col; sortDir=-1; }
+  if (sortCol === col) sortDir = -sortDir; else { sortCol = col; sortDir = -1; }
   renderTable(getFiltered());
 }
 
-function drawDonut(onTime,delayed,overdue,pending,resolved) {
-  setTimeout(function(){
-    var ctx = document.getElementById('donut-c'); if(!ctx) return;
-    if (donutChart) { donutChart.destroy(); donutChart=null; }
+function drawDonut(onTime, delayed, overdue, pending, resolved) {
+  setTimeout(function() {
+    var ctx = document.getElementById('donut-c'); if (!ctx) return;
+    if (donutChart) { donutChart.destroy(); donutChart = null; }
     donutChart = new Chart(ctx, {
       type: 'doughnut',
-      data: { datasets:[{ data:[onTime,delayed,overdue,pending,resolved],
-        backgroundColor:['#10b981','#f59e0b','#ef4444','#3b82f6','#8b5cf6'],
+      data: { datasets: [{ data: [onTime, delayed, overdue, pending, resolved],
+        backgroundColor: ['#10b981','#f59e0b','#ef4444','#3b82f6','#8b5cf6'],
         borderWidth: 2, borderColor: '#06080f', hoverOffset: 6 }] },
-      options: { cutout:'72%', plugins:{ legend:{display:false} }, animation:{ duration:800, easing:'easeInOutQuart' } }
+      options: { cutout: '72%', plugins: { legend: { display: false } }, animation: { duration: 800, easing: 'easeInOutQuart' } }
     });
   }, 80);
 }
 
-// 3D TILT
 function tilt3d(el, e) {
-  var r = el.getBoundingClientRect();
-  var cx = r.left + r.width/2, cy = r.top + r.height/2;
-  var rx = (e.clientY-cy)/r.height*12;
-  var ry = (e.clientX-cx)/r.width*-12;
-  el.style.transform = 'perspective(600px) rotateX('+rx+'deg) rotateY('+ry+'deg) translateY(-6px) scale(1.02)';
+  var r  = el.getBoundingClientRect();
+  var cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+  var rx = (e.clientY - cy) / r.height * 12;
+  var ry = (e.clientX - cx) / r.width * -12;
+  el.style.transform = 'perspective(600px) rotateX(' + rx + 'deg) rotateY(' + ry + 'deg) translateY(-6px) scale(1.02)';
 }
 function untilt(el) { el.style.transform = ''; }
 
 function parseCSV(text) {
-  var rows=[],lines=text.split('\n');
-  for(var i=0;i<lines.length;i++){
-    var line=lines[i].trim(); if(!line) continue;
-    var cols=[],cur='',inQ=false;
-    for(var j=0;j<line.length;j++){var ch=line[j];if(ch==='"')inQ=!inQ;else if(ch===','&&!inQ){cols.push(cur.trim());cur='';}else cur+=ch;}
+  var rows = [], lines = text.split('\n');
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i].trim(); if (!line) continue;
+    var cols = [], cur = '', inQ = false;
+    for (var j = 0; j < line.length; j++) {
+      var ch = line[j];
+      if (ch === '"') inQ = !inQ;
+      else if (ch === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
+      else cur += ch;
+    }
     cols.push(cur.trim()); rows.push(cols);
   }
   return rows;
 }
-function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function showError(msg){var el=document.getElementById('error-container');if(el)el.innerHTML='<div class="error-banner">⚠ '+msg+'</div>';}
-function clearError(){var el=document.getElementById('error-container');if(el)el.innerHTML='';}
+
+function esc(s) {
+  return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function showError(msg) { var el = document.getElementById('error-container'); if (el) el.innerHTML = '<div class="error-banner">⚠ ' + msg + '</div>'; }
+function clearError()   { var el = document.getElementById('error-container'); if (el) el.innerHTML = ''; }
 
 function exportReport() {
   if (!allData.length) { alert('No data loaded yet.'); return; }
 
-  var now = new Date();
+  var now        = new Date();
   var oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-  var replied = allData.filter(function(d) { return d.responseHrs !== null; });
-  var avgHrs = replied.length
-    ? Math.round(replied.reduce(function(s, d) { return s + d.responseHrs; }, 0) / replied.length * 10) / 10
-    : 0;
-
+  var replied     = allData.filter(function(d) { return d.responseHrs !== null; });
+  var avgHrs      = replied.length ? Math.round(replied.reduce(function(s, d) { return s + d.responseHrs; }, 0) / replied.length * 10) / 10 : 0;
   var weekReplied = replied.filter(function(d) { return d.replied && new Date(d.replied) >= oneWeekAgo; });
-  var weekAvg = weekReplied.length
-    ? Math.round(weekReplied.reduce(function(s, d) { return s + d.responseHrs; }, 0) / weekReplied.length * 10) / 10
-    : 0;
+  var weekAvg     = weekReplied.length ? Math.round(weekReplied.reduce(function(s, d) { return s + d.responseHrs; }, 0) / weekReplied.length * 10) / 10 : 0;
+  var slowest     = replied.slice().sort(function(a, b) { return b.responseHrs - a.responseHrs; }).slice(0, 5);
 
-  var slowest = replied.slice().sort(function(a, b) { return b.responseHrs - a.responseHrs; }).slice(0, 5);
+  var resolvedThisWeek = allData.filter(function(d) { return d.status === 'resolved' && d.resolvedAt && new Date(d.resolvedAt) >= oneWeekAgo; });
+  var openEmails       = allData.filter(function(d) { return d.status !== 'resolved'; });
+  var pastSevenDays    = allData.filter(function(d) { return d.status !== 'resolved' && d.received && (now - new Date(d.received)) / (1000 * 60 * 60 * 24) >= 7; });
+  var reopened         = allData.filter(function(d) { return d.resolvedAt && d.status !== 'resolved'; });
 
-  var resolvedThisWeek = allData.filter(function(d) {
-    return d.status === 'resolved' && d.resolvedAt && new Date(d.resolvedAt) >= oneWeekAgo;
-  });
+  var weekLabel = oneWeekAgo.toLocaleDateString('en-CA', { month: 'short', day: 'numeric' }) + ' — ' +
+    now.toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' });
 
-  var openEmails = allData.filter(function(d) {
-    return d.status !== 'resolved';
-  });
-
-  var pastSevenDays = allData.filter(function(d) {
-    return d.status !== 'resolved' && d.received && (now - new Date(d.received)) / (1000 * 60 * 60 * 24) >= 7;
-  });
-
-  var reopened = allData.filter(function(d) {
-    return d.resolvedAt && d.status !== 'resolved';
-  });
-
-  var weekLabel = oneWeekAgo.toLocaleDateString('en-CA', {month:'short',day:'numeric'}) + ' — ' +
-    now.toLocaleDateString('en-CA', {month:'short',day:'numeric',year:'numeric'});
-
-  // Build HTML report
   var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"/>' +
     '<title>Pricing Report — ' + weekLabel + '</title>' +
     '<style>' +
     'body{font-family:sans-serif;max-width:800px;margin:0 auto;padding:2rem;color:#1e293b;background:#fff;}' +
-    'h1{font-size:22px;margin:0 0 4px;}' +
-    '.subtitle{color:#64748b;font-size:14px;margin-bottom:2rem;}' +
+    'h1{font-size:22px;margin:0 0 4px;}.subtitle{color:#64748b;font-size:14px;margin-bottom:2rem;}' +
     '.metrics{display:flex;gap:12px;margin-bottom:2rem;}' +
     '.metric-box{flex:1;padding:16px;border-radius:10px;border:1px solid #e5e7eb;text-align:center;}' +
     '.metric-box .val{font-size:28px;font-weight:800;margin-bottom:2px;}' +
     '.metric-box .lbl{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;}' +
     'h2{font-size:16px;margin:2rem 0 10px;padding-top:1.5rem;border-top:1px solid #e5e7eb;}' +
-    'h2:first-of-type{border-top:none;padding-top:0;}' +
     'table{width:100%;border-collapse:collapse;margin-bottom:0.5rem;font-size:13px;}' +
     'th{text-align:left;padding:8px 10px;background:#f8fafc;border-bottom:2px solid #e5e7eb;font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:0.04em;}' +
-    'td{padding:8px 10px;border-bottom:1px solid #f1f5f9;}' +
-    'a{color:#2563eb;text-decoration:none;}' +
+    'td{padding:8px 10px;border-bottom:1px solid #f1f5f9;}a{color:#2563eb;text-decoration:none;}' +
     '.badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;}' +
     '.badge.on-time{background:#dcfce7;color:#16a34a;}.badge.delayed{background:#fef3c7;color:#d97706;}' +
     '.badge.overdue{background:#fee2e2;color:#dc2626;}.badge.pending{background:#dbeafe;color:#2563eb;}' +
@@ -1018,51 +1035,70 @@ function exportReport() {
     '</style></head><body>' +
     '<h1>📊 Weekly Pricing Report</h1>' +
     '<div class="subtitle">' + weekLabel + '</div>' +
-
     '<div class="metrics">' +
     '<div class="metric-box"><div class="val" style="color:#2563eb;">' + weekAvg + 'h</div><div class="lbl">Avg Response (Week)</div></div>' +
-    '<div class="metric-box"><div class="val" style="color:#7c3aed;">' + avgHrs + 'h</div><div class="lbl">Avg Response (All)</div></div>' +
+    '<div class="metric-box"><div class="val" style="color:#7c3aed;">' + avgHrs  + 'h</div><div class="lbl">Avg Response (All)</div></div>' +
     '<div class="metric-box"><div class="val" style="color:#16a34a;">' + resolvedThisWeek.length + '</div><div class="lbl">Resolved This Week</div></div>' +
-    '<div class="metric-box"><div class="val" style="color:#ea580c;">' + openEmails.length + '</div><div class="lbl">Open / Pending</div></div>' +
+    '<div class="metric-box"><div class="val" style="color:#ea580c;">' + openEmails.length       + '</div><div class="lbl">Open / Pending</div></div>' +
     '</div>' +
-
     '<h2>🐢 Slowest Response Times (Top 5)</h2>' +
     (slowest.length ? rptTable(['Client','Subject','Response Time','Replied At'],
-      slowest.map(function(d){return [esc(d.client),'<a href="'+esc(d.link)+'">'+esc(rptTrunc(d.subject,50))+'</a>',d.responseHrs+'h',d.replied||'—'];}))
+      slowest.map(function(d) { return [esc(d.client), '<a href="' + esc(d.link) + '">' + esc(rptTrunc(d.subject, 50)) + '</a>', d.responseHrs + 'h', d.replied || '—']; }))
       : '<div class="empty">No replied emails found.</div>') +
-
     '<h2>✅ Resolved This Week (' + resolvedThisWeek.length + ')</h2>' +
     (resolvedThisWeek.length ? rptTable(['Client','Subject','Response Time','Resolved At'],
-      resolvedThisWeek.map(function(d){return [esc(d.client),'<a href="'+esc(d.link)+'">'+esc(rptTrunc(d.subject,50))+'</a>',d.responseHrs!==null?d.responseHrs+'h':'—',d.resolvedAt||'—'];}))
+      resolvedThisWeek.map(function(d) { return [esc(d.client), '<a href="' + esc(d.link) + '">' + esc(rptTrunc(d.subject, 50)) + '</a>', d.responseHrs !== null ? d.responseHrs + 'h' : '—', d.resolvedAt || '—']; }))
       : '<div class="empty">No emails resolved this week.</div>') +
-
     '<h2>📬 Open / Needing Resolution (' + openEmails.length + ')</h2>' +
     (openEmails.length ? rptTable(['Client','Subject','Status','Received'],
-      openEmails.map(function(d){return [esc(d.client),'<a href="'+esc(d.link)+'">'+esc(rptTrunc(d.subject,50))+'</a>','<span class="badge '+d.status+'">'+STATUS_LABELS[d.status]+'</span>',d.received||'—'];}))
+      openEmails.map(function(d) { return [esc(d.client), '<a href="' + esc(d.link) + '">' + esc(rptTrunc(d.subject, 50)) + '</a>', '<span class="badge ' + d.status + '">' + STATUS_LABELS[d.status] + '</span>', d.received || '—']; }))
       : '<div class="empty">No open emails. All caught up! 🎉</div>') +
-
     '<h2>🚨 Past 7 Days &amp; Unresolved (' + pastSevenDays.length + ')</h2>' +
     (pastSevenDays.length ? rptTable(['Client','Subject','Days Open','Status'],
-      pastSevenDays.map(function(d){var days=Math.floor((now-new Date(d.received))/(1000*60*60*24));return [esc(d.client),'<a href="'+esc(d.link)+'">'+esc(rptTrunc(d.subject,50))+'</a>','<strong style="color:#dc2626;">'+days+' days</strong>','<span class="badge '+d.status+'">'+STATUS_LABELS[d.status]+'</span>'];}))
+      pastSevenDays.map(function(d) { var days = Math.floor((now - new Date(d.received)) / (1000 * 60 * 60 * 24)); return [esc(d.client), '<a href="' + esc(d.link) + '">' + esc(rptTrunc(d.subject, 50)) + '</a>', '<strong style="color:#dc2626;">' + days + ' days</strong>', '<span class="badge ' + d.status + '">' + STATUS_LABELS[d.status] + '</span>']; }))
       : '<div class="empty">No emails past 7 days. Great work! 🎉</div>') +
-
     '<h2>🔄 Reopened Threads (' + reopened.length + ')</h2>' +
     (reopened.length ? rptTable(['Client','Subject','Originally Resolved','Current Status'],
-      reopened.map(function(d){return [esc(d.client),'<a href="'+esc(d.link)+'">'+esc(rptTrunc(d.subject,50))+'</a>',d.resolvedAt||'—','<span class="badge '+d.status+'">'+STATUS_LABELS[d.status]+'</span>'];}))
+      reopened.map(function(d) { return [esc(d.client), '<a href="' + esc(d.link) + '">' + esc(rptTrunc(d.subject, 50)) + '</a>', d.resolvedAt || '—', '<span class="badge ' + d.status + '">' + STATUS_LABELS[d.status] + '</span>']; }))
       : '<div class="empty">No reopened threads.</div>') +
-
     '<div class="footer">Generated from AMZ Prep Pricing Dashboard · ' + now.toLocaleString() + '</div>' +
     '</body></html>';
 
   var blob = new Blob([html], { type: 'text/html' });
-  var url = URL.createObjectURL(blob);
-  var a = document.createElement('a');
+  var url  = URL.createObjectURL(blob);
+  var a    = document.createElement('a');
   a.href = url;
   a.download = 'Pricing-Report-' + now.toISOString().slice(0, 10) + '.html';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+}
+
+// ── CHANGE 3: Triggers the Apps Script weekly report (previous week) from the nav button
+function triggerWeeklyReport(btn) {
+  if (!confirm('Send previous week\'s pricing report to abishek, goku, blair & imtiaz?')) return;
+  btn.disabled    = true;
+  btn.textContent = '⏳ Sending…';
+  fetch(WEBAPP_URL + '?sendWeekly=1')
+    .then(function() {
+      btn.textContent   = '✅ Sent!';
+      btn.style.color   = 'var(--green)';
+      btn.style.borderColor  = 'rgba(16,185,129,0.4)';
+      btn.style.background   = 'rgba(16,185,129,0.12)';
+      setTimeout(function() {
+        btn.disabled         = false;
+        btn.textContent      = '📅 Send Weekly Report';
+        btn.style.color      = '';
+        btn.style.borderColor = '';
+        btn.style.background  = '';
+      }, 3000);
+    })
+    .catch(function(err) {
+      alert('Failed to send report: ' + err.message);
+      btn.disabled    = false;
+      btn.textContent = '📅 Send Weekly Report';
+    });
 }
 
 function rptTable(headers, rows) {
@@ -1077,24 +1113,17 @@ function rptTrunc(str, max) {
   return str.length > max ? str.substring(0, max) + '…' : str;
 }
 
-/* ── Blair Forrest Filter & Tab ── */
 function getBlairEmails(data) {
-  return data.filter(function(d) {
-    return d.blairInvolved === true;
-  });
+  return data.filter(function(d) { return d.blairInvolved === true; });
 }
 
 function renderBlairTab(fd) {
-  var blairData = getBlairEmails(fd);
+  var blairData    = getBlairEmails(fd);
   var allBlairData = getBlairEmails(allData);
-  var replied = blairData.filter(function(d) { return d.responseHrs !== null; });
-  var avgHrs = replied.length
-    ? Math.round(replied.reduce(function(s, d) { return s + d.responseHrs; }, 0) / replied.length * 10) / 10
-    : 0;
-  var pending = blairData.filter(function(d) { return d.status === 'pending'; }).length;
-  var overdue = blairData.filter(function(d) { return d.status === 'overdue'; }).length;
-  var resolved = blairData.filter(function(d) { return d.status === 'resolved'; }).length;
-  var onTime = blairData.filter(function(d) { return d.status === 'on-time'; }).length;
+  var replied      = blairData.filter(function(d) { return d.responseHrs !== null; });
+  var avgHrs       = replied.length ? Math.round(replied.reduce(function(s, d) { return s + d.responseHrs; }, 0) / replied.length * 10) / 10 : 0;
+  var pending      = blairData.filter(function(d) { return d.status === 'pending'; }).length;
+  var overdue      = blairData.filter(function(d) { return d.status === 'overdue'; }).length;
 
   var nextReport = getNextBiWeeklyDate();
 
@@ -1106,28 +1135,23 @@ function renderBlairTab(fd) {
       '</div>' +
       '<button class="btn-blair-report" onclick="sendBlairReportToGoku()">📨 Send Bi-Weekly Report to Goku</button>' +
     '</div>' +
-
     '<div class="report-schedule-info">' +
       '<div class="rsi-dot"></div>' +
       'Bi-weekly report auto-scheduled — next report: <strong style="color:var(--accent2);margin-left:4px;">' + nextReport + '</strong>' +
     '</div>' +
-
     '<div class="blair-stats">' +
       '<div class="blair-stat"><div class="bs-val" style="color:#bae6fd;">' + blairData.length + '</div><div class="bs-lbl">Total Emails</div></div>' +
       '<div class="blair-stat"><div class="bs-val" style="color:var(--amber);">' + avgHrs + 'h</div><div class="bs-lbl">Avg Response</div></div>' +
       '<div class="blair-stat"><div class="bs-val" style="color:var(--red);">' + (pending + overdue) + '</div><div class="bs-lbl">Pending / Overdue</div></div>' +
     '</div>';
 
-  // Table of Blair's emails
   if (!blairData.length) {
     html += '<div class="table-wrap"><div class="empty-state">No emails found involving Blair Forrest</div></div>';
   } else {
-    var sorted = blairData.slice().sort(function(a, b) {
-      return new Date(b.received) - new Date(a.received);
-    });
+    var sorted = blairData.slice().sort(function(a, b) { return new Date(b.received) - new Date(a.received); });
     var rows = sorted.map(function(d) {
-      var recv = d.received ? new Date(d.received).toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
-      var subj = d.subject.replace(/^re:\s*/i, '');
+      var recv   = d.received ? new Date(d.received).toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+      var subj   = d.subject.replace(/^re:\s*/i, '');
       var subjEl = d.link ? '<a href="' + esc(d.link) + '" target="_blank" style="color:var(--text2);text-decoration:none;" title="' + esc(d.subject) + '">' + esc(subj) + '</a>' : esc(subj);
       return '<tr>' +
         '<td class="td-client">' + esc(d.client) + '</td>' +
@@ -1148,15 +1172,12 @@ function renderBlairTab(fd) {
   document.getElementById('blair-body').innerHTML = html;
 }
 
-/* ── Bi-weekly report scheduling ── */
 function getNextBiWeeklyDate() {
-  var now = new Date();
-  // Bi-weekly on Monday
-  var day = now.getDay(); // 0=Sun, 1=Mon
+  var now  = new Date();
+  var day  = now.getDay();
   var daysUntilMonday = (1 - day + 7) % 7 || 7;
-  var nextMonday = new Date(now.getTime() + daysUntilMonday * 24 * 60 * 60 * 1000);
-  // Get the week number of the year to determine odd/even week for bi-weekly
-  var startOfYear = new Date(now.getFullYear(), 0, 1);
+  var nextMonday      = new Date(now.getTime() + daysUntilMonday * 24 * 60 * 60 * 1000);
+  var startOfYear     = new Date(now.getFullYear(), 0, 1);
   var weekNum = Math.ceil(((nextMonday - startOfYear) / (24 * 60 * 60 * 1000) + startOfYear.getDay() + 1) / 7);
   if (weekNum % 2 !== 0) {
     nextMonday = new Date(nextMonday.getTime() + 7 * 24 * 60 * 60 * 1000);
@@ -1167,41 +1188,31 @@ function getNextBiWeeklyDate() {
 function sendBlairReportToGoku() {
   if (!allData.length) { alert('No data loaded yet.'); return; }
 
-  var now = new Date();
+  var now        = new Date();
   var twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
-  var blairAll = getBlairEmails(allData);
-  var blairRecent = blairAll.filter(function(d) {
-    return d.received && new Date(d.received) >= twoWeeksAgo;
-  });
-  var blairOpen = blairAll.filter(function(d) { return d.status !== 'resolved'; });
-  var blairResolved = blairAll.filter(function(d) {
-    return d.status === 'resolved' && d.resolvedAt && new Date(d.resolvedAt) >= twoWeeksAgo;
-  });
+  var blairAll     = getBlairEmails(allData);
+  var blairRecent  = blairAll.filter(function(d) { return d.received && new Date(d.received) >= twoWeeksAgo; });
+  var blairOpen    = blairAll.filter(function(d) { return d.status !== 'resolved'; });
+  var blairResolved = blairAll.filter(function(d) { return d.status === 'resolved' && d.resolvedAt && new Date(d.resolvedAt) >= twoWeeksAgo; });
   var blairReplied = blairRecent.filter(function(d) { return d.responseHrs !== null; });
-  var avgHrs = blairReplied.length
-    ? Math.round(blairReplied.reduce(function(s, d) { return s + d.responseHrs; }, 0) / blairReplied.length * 10) / 10
-    : 0;
+  var avgHrs       = blairReplied.length ? Math.round(blairReplied.reduce(function(s, d) { return s + d.responseHrs; }, 0) / blairReplied.length * 10) / 10 : 0;
 
   var periodLabel = twoWeeksAgo.toLocaleDateString('en-CA', { month: 'short', day: 'numeric' }) + ' — ' +
     now.toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' });
 
-  // Build HTML report
   var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"/>' +
     '<title>Blair Forrest Bi-Weekly Report — ' + periodLabel + '</title>' +
     '<style>' +
     'body{font-family:sans-serif;max-width:800px;margin:0 auto;padding:2rem;color:#1e293b;background:#fff;}' +
-    'h1{font-size:22px;margin:0 0 4px;}' +
-    '.subtitle{color:#64748b;font-size:14px;margin-bottom:2rem;}' +
+    'h1{font-size:22px;margin:0 0 4px;}.subtitle{color:#64748b;font-size:14px;margin-bottom:2rem;}' +
     '.metrics{display:flex;gap:12px;margin-bottom:2rem;}' +
     '.metric-box{flex:1;padding:16px;border-radius:10px;border:1px solid #e5e7eb;text-align:center;}' +
     '.metric-box .val{font-size:28px;font-weight:800;margin-bottom:2px;}' +
     '.metric-box .lbl{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;}' +
     'h2{font-size:16px;margin:2rem 0 10px;padding-top:1.5rem;border-top:1px solid #e5e7eb;}' +
-    'h2:first-of-type{border-top:none;padding-top:0;}' +
     'table{width:100%;border-collapse:collapse;margin-bottom:0.5rem;font-size:13px;}' +
     'th{text-align:left;padding:8px 10px;background:#f8fafc;border-bottom:2px solid #e5e7eb;font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:0.04em;}' +
-    'td{padding:8px 10px;border-bottom:1px solid #f1f5f9;}' +
-    'a{color:#2563eb;text-decoration:none;}' +
+    'td{padding:8px 10px;border-bottom:1px solid #f1f5f9;}a{color:#2563eb;text-decoration:none;}' +
     '.badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;}' +
     '.badge.on-time{background:#dcfce7;color:#16a34a;}.badge.delayed{background:#fef3c7;color:#d97706;}' +
     '.badge.overdue{background:#fee2e2;color:#dc2626;}.badge.pending{background:#dbeafe;color:#2563eb;}' +
@@ -1211,50 +1222,43 @@ function sendBlairReportToGoku() {
     '</style></head><body>' +
     '<h1>📋 Blair Forrest — Bi-Weekly Intervention Report</h1>' +
     '<div class="subtitle">Period: ' + periodLabel + '</div>' +
-
     '<div class="metrics">' +
-    '<div class="metric-box"><div class="val" style="color:#7c3aed;">' + blairRecent.length + '</div><div class="lbl">Emails This Period</div></div>' +
-    '<div class="metric-box"><div class="val" style="color:#2563eb;">' + avgHrs + 'h</div><div class="lbl">Avg Response</div></div>' +
+    '<div class="metric-box"><div class="val" style="color:#7c3aed;">' + blairRecent.length   + '</div><div class="lbl">Emails This Period</div></div>' +
+    '<div class="metric-box"><div class="val" style="color:#2563eb;">' + avgHrs               + 'h</div><div class="lbl">Avg Response</div></div>' +
     '<div class="metric-box"><div class="val" style="color:#16a34a;">' + blairResolved.length + '</div><div class="lbl">Resolved This Period</div></div>' +
-    '<div class="metric-box"><div class="val" style="color:#ea580c;">' + blairOpen.length + '</div><div class="lbl">Still Open</div></div>' +
+    '<div class="metric-box"><div class="val" style="color:#ea580c;">' + blairOpen.length     + '</div><div class="lbl">Still Open</div></div>' +
     '</div>' +
-
     '<h2>📨 New Emails This Period (' + blairRecent.length + ')</h2>' +
-    (blairRecent.length ? rptTable(['Client', 'Subject', 'Status', 'Response Time', 'Received'],
+    (blairRecent.length ? rptTable(['Client','Subject','Status','Response Time','Received'],
       blairRecent.sort(function(a, b) { return new Date(b.received) - new Date(a.received); }).map(function(d) {
         return [esc(d.client), '<a href="' + esc(d.link) + '">' + esc(rptTrunc(d.subject, 50)) + '</a>',
           '<span class="badge ' + d.status + '">' + STATUS_LABELS[d.status] + '</span>',
           d.responseHrs !== null ? d.responseHrs + 'h' : '—', d.received || '—'];
       })) : '<div class="empty">No new emails involving Blair this period.</div>') +
-
     '<h2>✅ Resolved This Period (' + blairResolved.length + ')</h2>' +
-    (blairResolved.length ? rptTable(['Client', 'Subject', 'Response Time', 'Resolved At'],
+    (blairResolved.length ? rptTable(['Client','Subject','Response Time','Resolved At'],
       blairResolved.map(function(d) {
         return [esc(d.client), '<a href="' + esc(d.link) + '">' + esc(rptTrunc(d.subject, 50)) + '</a>',
           d.responseHrs !== null ? d.responseHrs + 'h' : '—', d.resolvedAt || '—'];
       })) : '<div class="empty">No emails resolved this period.</div>') +
-
     '<h2>⏳ Still Open / Pending (' + blairOpen.length + ')</h2>' +
-    (blairOpen.length ? rptTable(['Client', 'Subject', 'Status', 'Days Open', 'Received'],
+    (blairOpen.length ? rptTable(['Client','Subject','Status','Days Open','Received'],
       blairOpen.sort(function(a, b) { return new Date(a.received) - new Date(b.received); }).map(function(d) {
         var days = Math.floor((now - new Date(d.received)) / (1000 * 60 * 60 * 24));
         return [esc(d.client), '<a href="' + esc(d.link) + '">' + esc(rptTrunc(d.subject, 50)) + '</a>',
           '<span class="badge ' + d.status + '">' + STATUS_LABELS[d.status] + '</span>',
           '<strong style="color:#dc2626;">' + days + ' days</strong>', d.received || '—'];
       })) : '<div class="empty">No open emails. All caught up!</div>') +
-
     '<h2>📊 All-Time Summary</h2>' +
     '<div class="metrics">' +
     '<div class="metric-box"><div class="val" style="color:#1e293b;">' + blairAll.length + '</div><div class="lbl">Total All-Time</div></div>' +
     '<div class="metric-box"><div class="val" style="color:#16a34a;">' + blairAll.filter(function(d) { return d.status === 'resolved'; }).length + '</div><div class="lbl">Total Resolved</div></div>' +
-    '<div class="metric-box"><div class="val" style="color:#dc2626;">' + blairAll.filter(function(d) { return d.status === 'overdue'; }).length + '</div><div class="lbl">Total Overdue</div></div>' +
+    '<div class="metric-box"><div class="val" style="color:#dc2626;">' + blairAll.filter(function(d) { return d.status === 'overdue'; }).length  + '</div><div class="lbl">Total Overdue</div></div>' +
     '</div>' +
-
     '<div class="footer">Generated from AMZ Prep Pricing Dashboard · ' + now.toLocaleString() + '</div>' +
     '</body></html>';
 
-  // Send email via Apps Script web app
-  if (!WEBAPP_URL) { alert('WEBAPP_URL is not configured. Set it at the top of the script.'); return; }
+  if (!WEBAPP_URL) { alert('WEBAPP_URL is not configured.'); return; }
 
   var btn = document.querySelector('.btn-blair-report');
   if (btn) { btn.disabled = true; btn.textContent = '⏳ Sending…'; }
@@ -1263,9 +1267,9 @@ function sendBlairReportToGoku() {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
     body: JSON.stringify({
-      action: 'sendBlairReport',
-      to: 'goku@amzprep.com',
-      subject: 'Blair Forrest Bi-Weekly Intervention Report — ' + periodLabel,
+      action:   'sendBlairReport',
+      to:       'goku@amzprep.com',
+      subject:  'Blair Forrest Bi-Weekly Intervention Report — ' + periodLabel,
       htmlBody: html
     })
   })
@@ -1287,24 +1291,23 @@ function sendBlairReportToGoku() {
   });
 }
 
-/* ── Bi-weekly auto-reminder check ── */
 (function checkBiWeeklyReminder() {
-  var REMINDER_KEY = 'blair_report_last_sent';
-  var lastSent = localStorage.getItem(REMINDER_KEY);
-  var now = new Date();
+  var REMINDER_KEY  = 'blair_report_last_sent';
+  var lastSent      = localStorage.getItem(REMINDER_KEY);
+  var now           = new Date();
   var daysSinceLast = lastSent ? Math.floor((now - new Date(lastSent)) / (1000 * 60 * 60 * 24)) : 999;
   if (daysSinceLast >= 14) {
-    // Show a non-blocking reminder after data loads
     var origRender = window.render;
     if (origRender) {
       window.render = function() {
         origRender();
-        window.render = origRender; // restore
+        window.render = origRender;
         var blairEmails = getBlairEmails(allData);
         if (blairEmails.length > 0) {
           var banner = document.createElement('div');
           banner.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:9999;background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;padding:14px 20px;border-radius:14px;font-size:13px;font-family:Verdana,sans-serif;box-shadow:0 8px 30px rgba(139,92,246,0.4);display:flex;align-items:center;gap:12px;max-width:420px;animation:cardIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both;';
-          banner.innerHTML = '<div><strong>📨 Bi-Weekly Report Due</strong><br><span style="font-size:12px;opacity:0.85;">Blair Forrest\'s intervention report is ready to send to Goku.</span></div>' +
+          banner.innerHTML =
+            '<div><strong>📨 Bi-Weekly Report Due</strong><br><span style="font-size:12px;opacity:0.85;">Blair Forrest\'s intervention report is ready to send to Goku.</span></div>' +
             '<button onclick="sendBlairReportToGoku();this.parentElement.remove();" style="padding:8px 16px;border-radius:8px;border:none;background:#fff;color:#6d28d9;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap;">Send Now</button>' +
             '<button onclick="this.parentElement.remove();" style="padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.3);background:transparent;color:#fff;font-size:12px;cursor:pointer;">✕</button>';
           document.body.appendChild(banner);
