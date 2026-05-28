@@ -831,7 +831,7 @@ function render() {
       '</div>' +
     '</div>' +
 
-    '<div class="charts-row">' +
+    '<div style="margin-bottom: 20px;">' +
       '<div class="glass-card">' +
         '<div class="card-header"><div class="card-title">Response Time by Client</div>' +
         '<div class="card-badge">'+(isFiltered()?'FILTERED':'ALL TIME')+'</div></div>' +
@@ -1100,8 +1100,10 @@ function drawStatusChart(onTime, delayed, overdue, pending, resolved) {
     var canvas = document.getElementById('status-c'); if (!canvas) return;
     var parent = canvas.parentElement;
     if (parent) {
-      canvas.width = parent.offsetWidth * 1.5;
-      canvas.height = 340 * 1.5;
+      var dpr = window.devicePixelRatio || 1;
+      var rect = parent.getBoundingClientRect();
+      canvas.width = rect.width * dpr;
+      canvas.height = 340 * dpr;
       canvas.style.width = '100%';
       canvas.style.height = '340px';
     }
@@ -1143,7 +1145,7 @@ function drawStatusChart(onTime, delayed, overdue, pending, resolved) {
         },
         animation: { duration: 700, easing: 'easeInOutQuart' },
         maintainAspectRatio: false,
-        responsive: false,
+        responsive: true,
         layout: { padding: { top: 8, right: 16, left: 100, bottom: 8 } },
         plugins: [{
           id: 'statusBarLabels',
