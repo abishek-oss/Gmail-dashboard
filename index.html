@@ -1053,7 +1053,8 @@ function hideRequesterDetail() {
 function renderRequesterDetail(fd) {
   var name   = requesterDetailName;
   var emails = fd.filter(function(d){ return (d.requestedBy||'Unknown') === name; });
-  if (!emails.length) {
+  var noEmails = !emails.length;
+  if (noEmails) {
     console.warn('No requests found for requester:', name, '(filtered request count:', fd.length + ')');
   }
   var statusOrder = { pending:0, overdue:1, delayed:2, 'on-time':3, resolved:4 };
@@ -1085,11 +1086,11 @@ function renderRequesterDetail(fd) {
         '<span class="detail-name">'+esc(name)+'</span>' +
         '<span class="detail-count">'+emails.length+' requests</span>' +
       '</div>' +
-      (rows
-        ? '<table><thead><tr>' +
+      (noEmails
+        ? '<div class="empty-state">No requests found for this sender. Try clearing filters or switch to another tab.</div>'
+        : '<table><thead><tr>' +
             '<th>Subject</th><th>Client</th><th>Received</th><th>1st Response</th><th>Status</th>' +
-          '</tr></thead><tbody>'+rows+'</tbody></table>'
-        : '<div class="empty-state">No requests found for this sender</div>') +
+          '</tr></thead><tbody>'+rows+'</tbody></table>') +
     '</div>';
 }
 
