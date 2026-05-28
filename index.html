@@ -1016,7 +1016,7 @@ function renderRequesters(fd) {
       r.resolved ? '<span style="color:var(--violet-l);font-size:11px;">'+r.resolved+' resolved</span>' : ''
     ].filter(Boolean).join('<span style="color:var(--text3);margin:0 4px;">·</span>');
     return '<tr>' +
-      '<td><span class="req-name-link" onclick=\'showRequesterDetail('+JSON.stringify(r.name)+')\'>'+esc(r.name)+
+      '<td><span class="req-name-link" data-requester="'+esc(r.name)+'">'+esc(r.name)+
         ' <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span></td>' +
       '<td class="req-total">'+r.total+'</td>' +
       '<td class="req-metric">'+(avg!=null?avg+'h':'—')+'</td>' +
@@ -1037,6 +1037,11 @@ function renderRequesters(fd) {
         '<th style="text-align:center;">Avg response</th><th style="text-align:center;">Fastest</th>' +
         '<th style="text-align:center;">Slowest</th><th style="text-align:center;">SLA rate</th><th>Breakdown</th>' +
       '</tr></thead><tbody>'+trows+'</tbody></table></div>';
+  document.querySelectorAll('#req-body .req-name-link').forEach(function(el) {
+    el.addEventListener('click', function() {
+      showRequesterDetail(this.dataset.requester);
+    });
+  });
 }
 
 // ── REQUESTER DETAIL ──────────────────────────────────────
