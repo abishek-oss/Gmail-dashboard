@@ -790,13 +790,15 @@ function render() {
       '<div class="bar-num">'+d.responseHrs+'h</div></div>';
   }).join('');
 
+  var totalStatus = onTime + delayed + overdue + pending + resolved;
   var legend = [
     ['On Time', onTime, 'on-time'], ['Delayed', delayed, 'delayed'],
     ['Overdue', overdue, 'overdue'], ['Pending', pending, 'pending'], ['Resolved', resolved, 'resolved']
   ].map(function(l) {
+    var pct = totalStatus ? Math.round(l[1] / totalStatus * 100) : 0;
     return '<div class="legend-row">' +
       '<div class="legend-dot" style="background:'+STATUS_COLORS[l[2]]+'"></div>' +
-      l[0] + '<span class="legend-count">'+l[1]+'</span></div>';
+      l[0] + ' <span class="legend-count">'+l[1]+' ('+pct+'%)</span></div>';
   }).join('');
 
   var filterBadge = isFiltered() ? '<span class="filter-active-badge">'+fd.length+' / '+allData.length+'</span>' : '';
@@ -1108,7 +1110,9 @@ function drawStatusChart(onTime, delayed, overdue, pending, resolved) {
           STATUS_COLORS['pending'],
           STATUS_COLORS['resolved']
         ],
-        borderWidth: 0
+        borderWidth: 0,
+        borderRadius: 6,
+        barThickness: 18
       }] },
       options: {
         indexAxis: 'y',
@@ -1116,8 +1120,51 @@ function drawStatusChart(onTime, delayed, overdue, pending, resolved) {
           x: { beginAtZero: true, ticks: { color: 'rgba(226,232,240,0.85)' }, grid: { color: 'rgba(255,255,255,0.06)' } },
           y: { ticks: { color: 'rgba(226,232,240,0.85)' }, grid: { display: false } }
         },
-        plugins: { legend: { display: false } },
-        animation: { duration: 700, easing: 'easeInOutQuart' }
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                var value = context.parsed.x;
+                var total = context.chart.data.datasets[0].data.reduce(function(sum,v){return sum+v;},0);
+                var pct = total ? Math.round(value / total * 100) : 0;
+                return context.label + ': ' + value + ' (' + pct + '%)';
+              }
+            }
+          }
+        },
+        animation: { duration: 700, easing: 'easeInOutQuart' },
+        maintainAspectRatio: false,
+        responsive: true,
+        layout: { padding: { top: 10, right: 10, left: 10, bottom: 10 } },
+        plugins: [{
+          id: 'statusBarLabels',
+          afterDatasetsDraw: function(chart) {
+            var ctx = chart.ctx;
+            var dataset = chart.data.datasets[0];
+            var total = dataset.data.reduce(function(sum,v){return sum+v;},0);
+            ctx.save();
+            ctx.fillStyle = '#e2e8f0';
+            ctx.font = '12px Inter, system-ui, sans-serif';
+            chart.getDatasetMeta(0).data.forEach(function(bar, index) {
+              var value = dataset.data[index];
+              var percent = total ? Math.round(value / total * 100) : 0;
+              var label = value + ' (' + percent + '%)';
+              var x = bar.x + 8;
+              var y = bar.y;
+              var textWidth = ctx.measureText(label).width;
+              if (x + textWidth > chart.chartArea.right - 8) {
+                x = bar.x - 8;
+                ctx.textAlign = 'right';
+              } else {
+                ctx.textAlign = 'left';
+              }
+              ctx.textBaseline = 'middle';
+              ctx.fillText(label, x, y);
+            });
+            ctx.restore();
+          }
+        }]
       }
     });
   }, 80);
