@@ -692,38 +692,82 @@ async function loadData() {
     var rows = parseCSV(csv);
     if (rows.length < 2) throw new Error('Sheet is empty — run backfillPricingRequests() first.');
 
+    // Build a tolerant header -> index mapping (normalize keys)
     var col = {};
-    rows[0].forEach(function(h, i) { col[h.replace(/"/g, '').trim()] = i; });
+    rows[0].forEach(function(h, i) {
+      var key = (h || '').replace(/"/g, '').trim();
+      var norm1 = key.toLowerCase();
+      var norm2 = norm1.replace(/\s+/g, '');
+      col[key] = i; col[norm1] = i; col[norm2] = i;
+    });
+
+    function getIdx(names) {
+      for (var j = 0; j < names.length; j++) {
+        var k = names[j];
+        if (k in col) return col[k];
+      }
+      return undefined;
+    }
+
+    var idxClient = getIdx(['Client','client']);
+    var idxReceived = getIdx(['Received','received']);
+    var idxSubject = getIdx(['Subject','subject']);
+    var idxLink = getIdx(['Gmail Link','GmailLink','Link']);
+    var idxReplied = getIdx(['Replied At','RepliedAt','Replied']);
+    var idxResponseHrs = getIdx(['Response Time (hrs)','Response Time (hrs)','ResponseTime(hrs)','ResponseTime']);
+    var idxStatus = getIdx(['Status','status']);
+    var idxResolvedAt = getIdx(['Resolved At','ResolvedAt','Resolved']);
+    var idxRequestedBy = getIdx(['Requested By','RequestedBy','Requested']);
+    var idxReopenedAt = getIdx(['Reopened At','ReopenedAt','Reopened']);
+    var idxReopenHrs = getIdx(['Reopen Resolution Time (hrs)','Reopen Resolution Time (hrs)','ReopenResolutionTime']);
+    var idxBlair = getIdx(['Blair Involved','BlairInvolved','Blair']);
 
     allData = [];
     for (var i = 1; i < rows.length; i++) {
       var r = rows[i];
-      if (!r[col['Client']]) continue;
+      if (!r[idxClient]) continue;
 
-      var hrs = col['Response Time (hrs)'] !== undefined && r[col['Response Time (hrs)']] !== ''
-        ? parseFloat(r[col['Response Time (hrs)']]) : null;
-      var reopenHrs = col['Reopen Resolution Time (hrs)'] !== undefined && r[col['Reopen Resolution Time (hrs)']] !== ''
-        ? parseFloat(r[col['Reopen Resolution Time (hrs)']]) : null;
+      var hrs = idxResponseHrs !== undefined && r[idxResponseHrs] !== '' ? parseFloat(r[idxResponseHrs]) : null;
+      var reopenHrs = idxReopenHrs !== undefined && r[idxReopenHrs] !== '' ? parseFloat(r[idxReopenHrs]) : null;
 
-      var raw = (r[col['Status']] || '').toLowerCase();
+      var raw = (idxStatus !== undefined ? (r[idxStatus] || '') : '').toString().toLowerCase();
       var s = raw.indexOf('resolved') !== -1 ? 'resolved'
             : raw.indexOf('on time')  !== -1 ? 'on-time'
             : raw.indexOf('delayed')  !== -1 ? 'delayed'
             : raw.indexOf('overdue')  !== -1 ? 'overdue' : 'pending';
 
+      var receivedVal = idxReceived !== undefined ? (r[idxReceived] || '') : '';
+      var repliedVal = idxReplied !== undefined ? (r[idxReplied] || '') : '';
+      var resolvedVal = idxResolvedAt !== undefined ? (r[idxResolvedAt] || '') : '';
+
+      // If response hours missing, try to compute from Replied At or Resolved At vs Received
+      if ((hrs === null || isNaN(hrs)) && receivedVal) {
+        try {
+          var recvDate = new Date(receivedVal);
+          if (repliedVal) {
+            var repDate = new Date(repliedVal);
+            if (!isNaN(recvDate) && !isNaN(repDate)) hrs = Math.round((repDate - recvDate) / (1000*60*60) * 10) / 10;
+          }
+          if ((hrs === null || isNaN(hrs)) && resolvedVal) {
+            var resDate = new Date(resolvedVal);
+            if (!isNaN(recvDate) && !isNaN(resDate)) hrs = Math.round((resDate - recvDate) / (1000*60*60) * 10) / 10;
+          }
+        } catch(e) { hrs = hrs; }
+      }
+
       allData.push({
-        client:              r[col['Client']]     || '?',
-        received:            r[col['Received']]   || '',
-        subject:             r[col['Subject']]    || '',
-        link:                r[col['Gmail Link']] || '',
-        replied:             r[col['Replied At']] || null,
+        client:              r[idxClient]     || '?',
+        received:            receivedVal || '',
+        subject:             idxSubject!==undefined? (r[idxSubject] || '') : '',
+        link:                idxLink!==undefined? (r[idxLink] || '') : '',
+        replied:             repliedVal || null,
         responseHrs:         hrs,
         status:              s,
-        resolvedAt:          r[col['Resolved At']]   || '',
-        requestedBy:         r[col['Requested By']]  || '',
-        reopenedAt:          col['Reopened At']     !== undefined ? (r[col['Reopened At']]                    || '') : '',
+        resolvedAt:          resolvedVal || '',
+        requestedBy:         idxRequestedBy!==undefined? (r[idxRequestedBy] || '') : '',
+        reopenedAt:          idxReopenedAt!==undefined? (r[idxReopenedAt] || '') : '',
         reopenResolutionHrs: reopenHrs,
-        blairInvolved:       col['Blair Involved']  !== undefined ? (r[col['Blair Involved']] || '').toUpperCase() === 'TRUE' : false
+        blairInvolved:       idxBlair!==undefined? (r[idxBlair] || '').toUpperCase() === 'TRUE' : false
       });
     }
     render();
