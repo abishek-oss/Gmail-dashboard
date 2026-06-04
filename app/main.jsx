@@ -170,7 +170,7 @@ function App() {
   const doRefresh = () => { loadData(); toast('Syncing from Google Sheets…'); };
 
   const doExport = () => {
-    const cols = ['client', 'received', 'replied', 'responseHrs', 'status', 'requestedBy', 'blairInvolved'];
+    const cols = ['client', 'received', 'replied', 'responseHrs', 'status', 'requestedBy'];
     const csv = [cols.join(',')].concat(filtered.map(r =>
       cols.map(c => '"' + (r[c] == null ? '' : String(r[c]).replace(/"/g, '""')) + '"').join(','))).join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
@@ -203,7 +203,6 @@ function App() {
   const navItems = [
     { id: 'overview', icon: 'grid', tip: 'Overview' },
     { id: 'requester', icon: 'users', tip: 'By Requester' },
-    { id: 'blair', icon: 'star', tip: 'Blair Forrest' },
   ];
 
   return (
@@ -298,7 +297,6 @@ function App() {
             </>
           )}
           {tab === 'requester' && <RequesterTab rows={filtered} />}
-          {tab === 'blair' && <BlairTab rows={filtered} />}
           </>
           )}
         </div>
