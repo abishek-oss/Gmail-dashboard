@@ -1,0 +1,162 @@
+/* ══════════════════════════════════════════════════════════════
+   LIVE DATA LAYER — Firebase Auth + Google Sheets feed
+   Ported verbatim from the original AMZ Prep dashboard so the
+   React UI talks to the exact same backend.
+   Exposes:
+     window.LiveAuth.init(onChange)   → fires onChange(user|null)
+     window.LiveAuth.signIn()         → Google popup
+     window.LiveAuth.signOut()
+     window.LiveData.load()           → Promise<rows[]>  (parsed)
+     window.LiveData.sendWeekly()     → Promise (triggers Apps Script)
+   ════════════════════════════════════════════════════════════ */
+(function () {
+  // ── CONFIG (from original index.html) ───────────────────────
+  var firebaseConfig = {
+    apiKey: "AIzaSyBTrhx2cB93AA54ie9BYdGm3llJRf3Ect0",
+    authDomain: "dashboard-4ebfe.firebaseapp.com",
+    projectId: "dashboard-4ebfe",
+    storageBucket: "dashboard-4ebfe.firebasestorage.app",
+    messagingSenderId: "1062255919328",
+    appId: "1:1062255919328:web:c09fcf5244f4f34f269085",
+    measurementId: "G-837MTMN2VW"
+  };
+  var ALLOWED_DOMAIN = 'amzprep.com';
+  var SHEET_ID   = '13_1g-Iej0YNbR-6YY2rLoM3-R5uHWpfqdrSh2FLct44';
+  var WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbwj0cBbxCF3Pff0J_dvA4bnPG9KaEoykWyv7oCdW2R0GFa4NDZe07eZVP9shsnX5E4N/exec';
+
+  firebase.initializeApp(firebaseConfig);
+  var provider = new firebase.auth.GoogleAuthProvider();
+
+  window.LiveAuth = {
+    init: function (onChange) {
+      firebase.auth().onAuthStateChanged(function (user) {
+        if (user) {
+          var email = user.email || '';
+          if (email.split('@')[1] !== ALLOWED_DOMAIN) {
+            firebase.auth().signOut();
+            onChange(null, 'Access restricted to @' + ALLOWED_DOMAIN + ' accounts.');
+            return;
+          }
+          onChange({
+            email: email,
+            name: user.displayName || email,
+            photo: user.photoURL || ''
+          });
+        } else {
+          onChange(null);
+        }
+      });
+    },
+    signIn: function () {
+      return firebase.auth().signInWithPopup(provider);
+    },
+    signOut: function () { firebase.auth().signOut(); }
+  };
+
+  // ── CSV PARSER (verbatim) ───────────────────────────────────
+  function parseCSV(text) {
+    var rows = [], lines = text.split('\n');
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i].trim(); if (!line) continue;
+      var cols = [], cur = '', inQ = false;
+      for (var j = 0; j < line.length; j++) {
+        var ch = line[j];
+        if (ch === '"') inQ = !inQ;
+        else if (ch === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
+        else cur += ch;
+      }
+      cols.push(cur.trim()); rows.push(cols);
+    }
+    return rows;
+  }
+
+  window.LiveData = {
+    sheetUrl: function () {
+      return 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tqx=out:csv&sheet=Tracker';
+    },
+    load: async function () {
+      var res = await fetch(this.sheetUrl());
+      if (!res.ok) throw new Error('Cannot reach sheet (HTTP ' + res.status + '). Ensure the sheet is set to public view.');
+      var csv = await res.text();
+      if (csv.includes('<!DOCTYPE')) throw new Error('Sheet not found or not public.');
+      var rows = parseCSV(csv);
+      if (rows.length < 2) throw new Error('Sheet is empty — run backfillPricingRequests() first.');
+
+      // tolerant header → index mapping
+      var col = {};
+      rows[0].forEach(function (h, i) {
+        var key = (h || '').replace(/"/g, '').trim();
+        var norm1 = key.toLowerCase();
+        var norm2 = norm1.replace(/\s+/g, '');
+        col[key] = i; col[norm1] = i; col[norm2] = i;
+      });
+      function getIdx(names) {
+        for (var j = 0; j < names.length; j++) { if (names[j] in col) return col[names[j]]; }
+        return undefined;
+      }
+      var idxClient = getIdx(['Client', 'client']);
+      var idxReceived = getIdx(['Received', 'received']);
+      var idxSubject = getIdx(['Subject', 'subject']);
+      var idxLink = getIdx(['Gmail Link', 'GmailLink', 'Link']);
+      var idxReplied = getIdx(['Replied At', 'RepliedAt', 'Replied']);
+      var idxResponseHrs = getIdx(['Response Time (hrs)', 'ResponseTime(hrs)', 'ResponseTime']);
+      var idxStatus = getIdx(['Status', 'status']);
+      var idxResolvedAt = getIdx(['Resolved At', 'ResolvedAt', 'Resolved']);
+      var idxRequestedBy = getIdx(['Requested By', 'RequestedBy', 'Requested']);
+      var idxReopenedAt = getIdx(['Reopened At', 'ReopenedAt', 'Reopened']);
+      var idxReopenHrs = getIdx(['Reopen Resolution Time (hrs)', 'ReopenResolutionTime']);
+      var idxBlair = getIdx(['Blair Involved', 'BlairInvolved', 'Blair']);
+
+      var out = [];
+      for (var i = 1; i < rows.length; i++) {
+        var r = rows[i];
+        if (!r[idxClient]) continue;
+        var hrs = idxResponseHrs !== undefined && r[idxResponseHrs] !== '' ? parseFloat(r[idxResponseHrs]) : null;
+        var reopenHrs = idxReopenHrs !== undefined && r[idxReopenHrs] !== '' ? parseFloat(r[idxReopenHrs]) : null;
+
+        var raw = (idxStatus !== undefined ? (r[idxStatus] || '') : '').toString().toLowerCase();
+        var s = raw.indexOf('resolved') !== -1 ? 'resolved'
+              : raw.indexOf('on time') !== -1 ? 'on-time'
+              : raw.indexOf('delayed') !== -1 ? 'delayed'
+              : raw.indexOf('overdue') !== -1 ? 'overdue' : 'pending';
+
+        var receivedVal = idxReceived !== undefined ? (r[idxReceived] || '') : '';
+        var repliedVal = idxReplied !== undefined ? (r[idxReplied] || '') : '';
+        var resolvedVal = idxResolvedAt !== undefined ? (r[idxResolvedAt] || '') : '';
+
+        if ((hrs === null || isNaN(hrs)) && receivedVal) {
+          try {
+            var recvDate = new Date(receivedVal);
+            if (repliedVal) {
+              var repDate = new Date(repliedVal);
+              if (!isNaN(recvDate) && !isNaN(repDate)) hrs = Math.round((repDate - recvDate) / 36e5 * 10) / 10;
+            }
+            if ((hrs === null || isNaN(hrs)) && resolvedVal) {
+              var resDate = new Date(resolvedVal);
+              if (!isNaN(recvDate) && !isNaN(resDate)) hrs = Math.round((resDate - recvDate) / 36e5 * 10) / 10;
+            }
+          } catch (e) { /* keep hrs */ }
+        }
+
+        out.push({
+          client: r[idxClient] || '?',
+          received: receivedVal || '',
+          subject: idxSubject !== undefined ? (r[idxSubject] || '') : '',
+          link: idxLink !== undefined ? (r[idxLink] || '') : '',
+          replied: repliedVal || null,
+          responseHrs: (hrs === null || isNaN(hrs)) ? null : hrs,
+          status: s,
+          resolvedAt: resolvedVal || '',
+          requestedBy: idxRequestedBy !== undefined ? (r[idxRequestedBy] || '') : '',
+          reopenedAt: idxReopenedAt !== undefined ? (r[idxReopenedAt] || '') : '',
+          reopenResolutionHrs: reopenHrs,
+          blairInvolved: idxBlair !== undefined ? (r[idxBlair] || '').toUpperCase() === 'TRUE' : false
+        });
+      }
+      return out;
+    },
+    sendWeekly: function () {
+      return fetch(WEBAPP_URL + '?sendWeekly=1');
+    }
+  };
+})();
