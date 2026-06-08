@@ -82,6 +82,152 @@ function useToast() {
   return [node, show];
 }
 
+/* ── WEEKLY REPORT HTML GENERATOR ─────────────────────────────── */
+function generateWeeklyReportHTML(rows, weekLabel) {
+  const total = rows.length;
+  const replied = rows.filter(r => r.responseHrs != null);
+  const avg = replied.length ? replied.reduce((s, r) => s + r.responseHrs, 0) / replied.length : 0;
+  const onTime = rows.filter(r => r.status === 'on-time' || r.status === 'resolved').length;
+  const sla = total ? Math.round((onTime / total) * 100) : 0;
+  const pending = rows.filter(r => r.status === 'pending').length;
+  const overdue = rows.filter(r => r.status === 'overdue').length;
+  const counts = { 'on-time': 0, delayed: 0, overdue: 0, pending: 0, resolved: 0 };
+  rows.forEach(r => { counts[r.status] = (counts[r.status] || 0) + 1; });
+
+  const fmtH = v => v == null ? '—' : v < 1 ? Math.round(v * 60) + 'm' : v.toFixed(1) + 'h';
+  const maxCount = Math.max(...Object.values(counts), 1);
+
+  const SCOL = { 'on-time': '#22c55e', delayed: '#f59e0b', overdue: '#f43f5e', pending: '#38bdf8', resolved: '#2dd4bf' };
+  const SBG  = { 'on-time': '#061510', delayed: '#130f06', overdue: '#130509', pending: '#051422', resolved: '#051614' };
+  const SLBL = { 'on-time': 'On Time', delayed: 'Delayed', overdue: 'Overdue', pending: 'Pending', resolved: 'Resolved' };
+
+  const breakdownRows = ['resolved', 'on-time', 'pending', 'delayed', 'overdue']
+    .filter(k => counts[k] > 0)
+    .map(k => {
+      const pct = Math.round(counts[k] / maxCount * 100);
+      return `<tr>
+        <td width="80" style="padding:5px 12px 5px 0;font-size:11px;color:#8ea2cc;font-family:monospace;text-align:right;white-space:nowrap;">${SLBL[k]}</td>
+        <td style="padding:5px 0;">
+          <table width="100%" cellpadding="0" cellspacing="0"><tr>
+            <td width="${pct}%" style="background:${SCOL[k]};height:22px;border-radius:4px 0 0 4px;"></td>
+            <td style="background:#07101e;height:22px;border-radius:0 4px 4px 0;"></td>
+          </tr></table>
+        </td>
+        <td width="38" style="padding:5px 0 5px 12px;font-size:13px;font-weight:700;color:${SCOL[k]};font-family:monospace;text-align:right;">${counts[k]}</td>
+      </tr>`;
+    }).join('');
+
+  const requestRows = rows.map(r => `<tr>
+    <td style="padding:11px 16px;font-size:12px;color:#eaf1ff;font-weight:500;border-bottom:1px solid #0b1525;">${r.client || '—'}</td>
+    <td style="padding:11px 16px;font-size:11px;color:#8ea2cc;font-family:monospace;border-bottom:1px solid #0b1525;white-space:nowrap;">${r.received || '—'}</td>
+    <td style="padding:11px 16px;font-size:11px;color:${r.responseHrs == null ? '#4f617f' : '#eaf1ff'};font-family:monospace;border-bottom:1px solid #0b1525;">${fmtH(r.responseHrs)}</td>
+    <td style="padding:11px 16px;border-bottom:1px solid #0b1525;"><span style="display:inline-block;font-size:10px;font-family:monospace;font-weight:600;padding:4px 10px;border-radius:999px;background:${SBG[r.status]};color:${SCOL[r.status]};border:1px solid ${SCOL[r.status]}55;white-space:nowrap;">${SLBL[r.status] || r.status}</span></td>
+    <td style="padding:11px 16px;font-size:12px;color:#8ea2cc;border-bottom:1px solid #0b1525;">${r.requestedBy || '—'}</td>
+  </tr>`).join('');
+
+  const stats = [
+    { col: '#38bdf8', border: '#0a2030', label: 'TOTAL REQUESTS', value: String(total),        sub: replied.length + ' replied · ' + (total - replied.length) + ' awaiting' },
+    { col: '#f59e0b', border: '#26180a', label: 'AVG RESPONSE',   value: fmtH(avg),             sub: 'across replied threads' },
+    { col: '#22c55e', border: '#0a2015', label: 'SLA HIT RATE',   value: sla + '%',             sub: 'on-time + resolved' },
+    { col: '#f43f5e', border: '#260810', label: 'NEEDS ACTION',   value: String(pending + overdue), sub: pending + ' pending · ' + overdue + ' overdue' },
+  ];
+
+  const statCards = stats.map(s => `
+    <td width="25%" style="padding:0 6px;">
+      <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid ${s.border};border-radius:14px;overflow:hidden;">
+        <tr><td style="background:${s.col};height:3px;font-size:0;line-height:0;">&nbsp;</td></tr>
+        <tr><td style="background:#07101e;padding:18px 16px;">
+          <div style="font-size:9px;font-family:monospace;color:#4f617f;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:10px;">${s.label}</div>
+          <div style="font-size:30px;font-weight:800;color:${s.col};letter-spacing:-0.04em;line-height:1;">${s.value}</div>
+          <div style="font-size:10px;color:#4f617f;margin-top:8px;font-family:monospace;line-height:1.5;">${s.sub}</div>
+        </td></tr>
+      </table>
+    </td>`).join('');
+
+  const generated = new Date().toISOString().slice(0, 16).replace('T', ' ') + ' UTC';
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>AMZ Prep · Weekly Pricing Report · ${weekLabel}</title>
+</head>
+<body style="margin:0;padding:0;background:#000004;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;">
+<div style="max-width:700px;margin:0 auto;padding:28px 16px 56px;">
+
+  <!-- HEADER -->
+  <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px;border:1px solid #1a2a4a;border-radius:16px;overflow:hidden;">
+    <tr><td style="background:linear-gradient(90deg,#2f6bff,#1a45cc);height:4px;font-size:0;line-height:0;">&nbsp;</td></tr>
+    <tr>
+      <td style="background:#040813;padding:28px 32px 26px;">
+        <table width="100%" cellpadding="0" cellspacing="0"><tr>
+          <td>
+            <div style="font-size:21px;font-weight:800;color:#eaf1ff;letter-spacing:-0.03em;">AMZ Prep · Pricing Intelligence</div>
+            <div style="font-size:11px;color:#8ea2cc;margin-top:7px;font-family:monospace;letter-spacing:0.06em;">WEEKLY REPORT &nbsp;·&nbsp; ${weekLabel.toUpperCase()}</div>
+          </td>
+          <td style="text-align:right;vertical-align:middle;">
+            <span style="display:inline-block;font-size:9px;font-family:monospace;letter-spacing:0.1em;padding:5px 13px;border-radius:999px;background:rgba(34,197,94,0.12);color:#22c55e;border:1px solid rgba(34,197,94,0.35);">● LIVE DATA</span>
+          </td>
+        </tr></table>
+      </td>
+    </tr>
+  </table>
+
+  <!-- STAT CARDS -->
+  <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 -6px 20px;">
+    <tr>${statCards}</tr>
+  </table>
+
+  <!-- STATUS BREAKDOWN -->
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#040813;border:1px solid #1a2a4a;border-radius:14px;margin-bottom:20px;">
+    <tr>
+      <td style="padding:20px 24px 18px;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:16px;"><tr>
+          <td style="font-size:13px;font-weight:600;color:#eaf1ff;">Status Breakdown</td>
+          <td style="text-align:right;font-size:10px;font-family:monospace;color:#4f617f;letter-spacing:0.05em;">${total} REQUESTS</td>
+        </tr></table>
+        <table width="100%" cellpadding="0" cellspacing="0">${breakdownRows}</table>
+      </td>
+    </tr>
+  </table>
+
+  <!-- REQUEST LOG -->
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#040813;border:1px solid #1a2a4a;border-radius:14px;margin-bottom:24px;">
+    <tr>
+      <td style="padding:18px 22px 14px;border-bottom:1px solid #0d1628;">
+        <table width="100%" cellpadding="0" cellspacing="0"><tr>
+          <td style="font-size:13px;font-weight:600;color:#eaf1ff;">Request Log</td>
+          <td style="text-align:right;font-size:10px;font-family:monospace;color:#4f617f;letter-spacing:0.05em;">${rows.length} ENTRIES</td>
+        </tr></table>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <thead><tr style="background:#02040a;">
+            <th style="padding:10px 16px;text-align:left;font-size:9px;font-family:monospace;color:#4f617f;text-transform:uppercase;letter-spacing:0.1em;font-weight:500;border-bottom:1px solid #0d1628;">Client</th>
+            <th style="padding:10px 16px;text-align:left;font-size:9px;font-family:monospace;color:#4f617f;text-transform:uppercase;letter-spacing:0.1em;font-weight:500;border-bottom:1px solid #0d1628;">Received</th>
+            <th style="padding:10px 16px;text-align:left;font-size:9px;font-family:monospace;color:#4f617f;text-transform:uppercase;letter-spacing:0.1em;font-weight:500;border-bottom:1px solid #0d1628;">Response</th>
+            <th style="padding:10px 16px;text-align:left;font-size:9px;font-family:monospace;color:#4f617f;text-transform:uppercase;letter-spacing:0.1em;font-weight:500;border-bottom:1px solid #0d1628;">Status</th>
+            <th style="padding:10px 16px;text-align:left;font-size:9px;font-family:monospace;color:#4f617f;text-transform:uppercase;letter-spacing:0.1em;font-weight:500;border-bottom:1px solid #0d1628;">Requested By</th>
+          </tr></thead>
+          <tbody>${requestRows}</tbody>
+        </table>
+      </td>
+    </tr>
+  </table>
+
+  <!-- FOOTER -->
+  <div style="text-align:center;font-size:9px;font-family:monospace;color:#2d3d52;letter-spacing:0.08em;margin-top:8px;">
+    GENERATED ${generated} &nbsp;·&nbsp; AMZ PREP PRICING INTELLIGENCE
+  </div>
+
+</div>
+</body>
+</html>`;
+}
+
 /* ── APP ───────────────────────────────────────────────────────── */
 const REFRESH_SECONDS = 300; // 5-minute live poll, matches the original dashboard
 
@@ -180,11 +326,33 @@ function App() {
   };
 
   const doReport = () => {
-    if (demo) { toast('Demo mode — weekly report not sent'); return; }
-    if (!window.confirm("Send previous week's pricing report to abishek, goku, blair & imtiaz?")) return;
-    window.LiveData.sendWeekly()
-      .then(() => toast('✅ Weekly report sent'))
-      .catch(() => toast('⚠ Could not trigger weekly report'));
+    // Determine previous week Mon–Sun
+    const now = new Date();
+    const dayOfWeek = now.getDay(); // 0=Sun…6=Sat
+    const daysSinceMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+    const thisMonday = new Date(now); thisMonday.setDate(now.getDate() - daysSinceMonday); thisMonday.setHours(0,0,0,0);
+    const prevMonday = new Date(thisMonday); prevMonday.setDate(thisMonday.getDate() - 7);
+    const prevSunday = new Date(thisMonday); prevSunday.setDate(thisMonday.getDate() - 1); prevSunday.setHours(23,59,59,999);
+
+    const fmt = d => d.toISOString().slice(0, 10);
+    const weekStart = fmt(prevMonday);
+    const weekEnd   = fmt(prevSunday);
+    const weekLabel = weekStart + ' → ' + weekEnd;
+
+    const weekRows = allData.filter(r => {
+      const d = r.received ? r.received.slice(0, 10) : '';
+      return d >= weekStart && d <= weekEnd;
+    });
+
+    if (weekRows.length === 0 && !window.confirm('No requests found for ' + weekLabel + '. Generate empty report anyway?')) return;
+
+    const html = generateWeeklyReportHTML(weekRows, weekLabel);
+    const blob = new Blob([html], { type: 'text/html' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'pricing-report-' + weekStart + '.html';
+    a.click();
+    toast('Report downloaded — ' + weekRows.length + ' requests for ' + weekLabel);
   };
 
   const signOut = () => {
