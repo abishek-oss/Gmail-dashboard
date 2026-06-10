@@ -270,7 +270,7 @@ function RequesterTab({ rows }) {
               {g.counts['delayed']  > 0 && pill('var(--amber)',    'rgba(245,158,11,0.1)',  'rgba(245,158,11,0.25)',  g.counts['delayed']  + ' delayed')}
               {g.counts['overdue']  > 0 && pill('var(--red)',      'rgba(244,63,94,0.1)',   'rgba(244,63,94,0.25)',   g.counts['overdue']  + ' overdue')}
               {g.counts['pending']  > 0 && pill('var(--blue)',     'rgba(56,189,248,0.1)',  'rgba(56,189,248,0.25)',  g.counts['pending']  + ' pending')}
-              {g.counts['resolved'] > 0 && pill('var(--violet-l)', 'rgba(111,157,255,0.1)', 'rgba(111,157,255,0.25)', g.counts['resolved'] + ' resolved')}
+              {g.counts['resolved'] > 0 && pill('#2dd4bf', 'rgba(45,212,191,0.1)', 'rgba(45,212,191,0.25)', g.counts['resolved'] + ' resolved')}
             </div>
           </Tilt>
         ))}
