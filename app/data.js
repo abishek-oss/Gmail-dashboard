@@ -6,6 +6,31 @@
    Deterministic (seeded) so the prototype is stable across reloads.
    ────────────────────────────────────────────────────────────── */
 (function () {
+  /* ── RATES-RESOLUTION DETECTOR (shared with the live feed) ─────────
+     A thread is tagged "resolved with rates" when the resolving reply
+     comes from one of our pricing leads AND carries either a Google
+     Sheets rates link or an Excel sheet. Defined on window so both
+     data.js (mock) and live.js (Google Sheet) share one rule.        */
+  window.RATES_SENDERS = ['abishek', 'goku', 'omar', 'henna', 'alia'];
+  window.isRatesResponse = function (text) {
+    if (!text) return false;
+    var t = String(text).toLowerCase();
+    var sheetLink = t.indexOf('docs.google.com/spreadsheets') !== -1; // Google Sheets rates link
+    var excel = /\.xlsx?(?:[\s"'?#)]|$)/.test(t);                     // .xls / .xlsx attachment
+    return sheetLink || excel;
+  };
+  window.isRatesSender = function (name) {
+    if (!name) return false;
+    var n = String(name).toLowerCase();
+    return window.RATES_SENDERS.some(function (s) { return n.indexOf(s) !== -1; });
+  };
+  window.detectRatesResolution = function (row) {
+    if (row.ratesResolved === true) return true;          // explicit flag wins
+    if (row.status !== 'resolved') return false;
+    if (!window.isRatesSender(row.resolvedBy)) return false;
+    return window.isRatesResponse(row.resolutionLinks || row.resolutionBody || '');
+  };
+
   // tiny seeded RNG (mulberry32) → deterministic data
   function rng(seed) {
     return function () {
@@ -29,6 +54,8 @@
     'Hana Kim', 'Diego Ramos', 'Eleanor Pope', 'Tomas Bauer',
     'Aaliyah Hassan', 'Liam Donovan'
   ];
+  // pricing leads who close threads (first five trigger the rates tag)
+  var RESOLVERS = ['Abishek', 'Goku', 'Omar', 'Henna', 'Alia', 'Blair Forrest', 'Sasha Lin'];
   var TYPES = [
     { suffix: 'Fulfilment', sla: 8 },
     { suffix: 'Shipping', sla: 16 },
@@ -65,6 +92,7 @@
     var hasReply = rand() < 0.8;
     var responseHrs = null, replied = null, status, resolvedAt = '';
     var reopenedAt = '', reopenResolutionHrs = null;
+    var resolvedBy = '', resolutionLinks = '';
 
     if (hasReply) {
       // response time: mostly fast, some long-tail
@@ -77,6 +105,10 @@
         status = 'resolved';
         var resHrs = responseHrs + rand() * 120 + 12;
         resolvedAt = fmtDate(new Date(received.getTime() + resHrs * 36e5));
+        resolvedBy = pick(RESOLVERS);
+        // most resolutions ship a rates sheet (Google Sheets link or Excel)
+        if (rand() < 0.62) resolutionLinks = 'https://docs.google.com/spreadsheets/d/1AbC' + i + 'Xyz/edit — Q3 rates';
+        else if (rand() < 0.45) resolutionLinks = 'rates-' + client.toLowerCase().replace(/\s+/g, '-') + '.xlsx';
         // a few reopened threads
         if (rand() < 0.18) {
           reopenedAt = fmtDate(new Date(received.getTime() + (resHrs + 24) * 36e5));
@@ -88,21 +120,33 @@
       status = statusFromHrs(null, type.sla, false);
     }
 
-    data.push({
+    // time from first response → resolved
+    var resolutionHrs = null;
+    if (replied && resolvedAt) {
+      var rd = new Date(replied), sd = new Date(resolvedAt);
+      if (!isNaN(rd) && !isNaN(sd) && sd >= rd) resolutionHrs = Math.round((sd - rd) / 36e5 * 10) / 10;
+    }
+
+    var row = {
       client: client,
       received: fmtDate(received),
       subject: 'Pricing Request - ' + type.suffix + ' — ' + client,
       link: 'https://mail.google.com/mail/u/0/#search/' + encodeURIComponent(client),
       replied: replied,
       responseHrs: responseHrs,
+      resolutionHrs: resolutionHrs,
       status: status,
       resolvedAt: resolvedAt,
+      resolvedBy: resolvedBy,
+      resolutionLinks: resolutionLinks,
       requestedBy: requestedBy,
       reopenedAt: reopenedAt,
       reopenResolutionHrs: reopenResolutionHrs,
       blairInvolved: rand() < 0.3, // ~30% need Blair's intervention
       _sla: type.sla
-    });
+    };
+    row.ratesResolved = window.detectRatesResolution(row);
+    data.push(row);
   }
 
   // sort newest first by received

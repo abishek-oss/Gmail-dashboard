@@ -106,6 +106,9 @@
       var idxReopenedAt = getIdx(['Reopened At', 'ReopenedAt', 'Reopened']);
       var idxReopenHrs = getIdx(['Reopen Resolution Time (hrs)', 'ReopenResolutionTime']);
       var idxBlair = getIdx(['Blair Involved', 'BlairInvolved', 'Blair']);
+      var idxResolvedBy = getIdx(['Resolved By', 'ResolvedBy', 'Resolver']);
+      var idxResolutionLinks = getIdx(['Resolution Links', 'ResolutionLinks', 'Rates Link', 'RatesLink', 'Resolution Attachments', 'Attachments', 'Resolution Body', 'ResolutionBody']);
+      var idxRatesResolved = getIdx(['Rates Resolved', 'RatesResolved', 'Rates Sheet', 'RatesSheet', 'Has Rates']);
 
       var out = [];
       for (var i = 1; i < rows.length; i++) {
@@ -123,6 +126,8 @@
         var receivedVal = idxReceived !== undefined ? (r[idxReceived] || '') : '';
         var repliedVal = idxReplied !== undefined ? (r[idxReplied] || '') : '';
         var resolvedVal = idxResolvedAt !== undefined ? (r[idxResolvedAt] || '') : '';
+        var resolvedByVal = idxResolvedBy !== undefined ? (r[idxResolvedBy] || '') : '';
+        var resolutionLinksVal = idxResolutionLinks !== undefined ? (r[idxResolutionLinks] || '') : '';
 
         if ((hrs === null || isNaN(hrs)) && receivedVal) {
           try {
@@ -138,20 +143,34 @@
           } catch (e) { /* keep hrs */ }
         }
 
-        out.push({
+        // time from first response → resolved
+        var resolutionHrs = null;
+        if (repliedVal && resolvedVal) {
+          var rd = new Date(repliedVal), sd = new Date(resolvedVal);
+          if (!isNaN(rd) && !isNaN(sd) && sd >= rd) resolutionHrs = Math.round((sd - rd) / 36e5 * 10) / 10;
+        }
+        var ratesFlag = idxRatesResolved !== undefined && (r[idxRatesResolved] || '').toUpperCase() === 'TRUE';
+
+        var row = {
           client: r[idxClient] || '?',
           received: receivedVal || '',
           subject: idxSubject !== undefined ? (r[idxSubject] || '') : '',
           link: idxLink !== undefined ? (r[idxLink] || '') : '',
           replied: repliedVal || null,
           responseHrs: (hrs === null || isNaN(hrs)) ? null : hrs,
+          resolutionHrs: resolutionHrs,
           status: s,
           resolvedAt: resolvedVal || '',
+          resolvedBy: resolvedByVal || '',
+          resolutionLinks: resolutionLinksVal || '',
+          ratesResolved: ratesFlag,
           requestedBy: idxRequestedBy !== undefined ? (r[idxRequestedBy] || '') : '',
           reopenedAt: idxReopenedAt !== undefined ? (r[idxReopenedAt] || '') : '',
           reopenResolutionHrs: reopenHrs,
           blairInvolved: idxBlair !== undefined ? (r[idxBlair] || '').toUpperCase() === 'TRUE' : false
-        });
+        };
+        row.ratesResolved = window.detectRatesResolution ? window.detectRatesResolution(row) : ratesFlag;
+        out.push(row);
       }
       return out;
     },

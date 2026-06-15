@@ -117,10 +117,12 @@ function generateWeeklyReportHTML(rows, weekLabel) {
       </tr>`;
     }).join('');
 
+  const ratesPill = '<span style="display:inline-block;margin-left:7px;font-size:8.5px;font-family:monospace;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;padding:2px 7px;border-radius:999px;background:rgba(225,255,125,0.14);color:#E1FF7D;border:1px solid rgba(225,255,125,0.35);">Rates</span>';
   const requestRows = rows.map(r => `<tr>
     <td style="padding:11px 16px;font-size:12px;color:#eaf1ff;font-weight:500;border-bottom:1px solid #0e1936;">${r.client || '—'}</td>
     <td style="padding:11px 16px;font-size:11px;color:#8ea2cc;font-family:monospace;border-bottom:1px solid #0e1936;white-space:nowrap;">${r.received || '—'}</td>
     <td style="padding:11px 16px;font-size:11px;color:${r.responseHrs == null ? '#4f617f' : '#eaf1ff'};font-family:monospace;border-bottom:1px solid #0e1936;">${fmtH(r.responseHrs)}</td>
+    <td style="padding:11px 16px;font-size:11px;color:${r.resolutionHrs == null ? '#4f617f' : '#eaf1ff'};font-family:monospace;border-bottom:1px solid #0e1936;white-space:nowrap;">${fmtH(r.resolutionHrs)}${r.ratesResolved ? ratesPill : ''}</td>
     <td style="padding:11px 16px;border-bottom:1px solid #0e1936;"><span style="display:inline-block;font-size:10px;font-family:monospace;font-weight:600;padding:4px 10px;border-radius:999px;background:${SBG[r.status]};color:${SCOL[r.status]};border:1px solid ${SCOL[r.status]}55;white-space:nowrap;">${SLBL[r.status] || r.status}</span></td>
     <td style="padding:11px 16px;font-size:12px;color:#8ea2cc;border-bottom:1px solid #0e1936;">${r.requestedBy || '—'}</td>
   </tr>`).join('');
@@ -208,7 +210,8 @@ function generateWeeklyReportHTML(rows, weekLabel) {
           <thead><tr style="background:#02040a;">
             <th style="padding:10px 16px;text-align:left;font-size:9px;font-family:monospace;color:#4f617f;text-transform:uppercase;letter-spacing:0.1em;font-weight:500;border-bottom:1px solid #101c40;">Client</th>
             <th style="padding:10px 16px;text-align:left;font-size:9px;font-family:monospace;color:#4f617f;text-transform:uppercase;letter-spacing:0.1em;font-weight:500;border-bottom:1px solid #101c40;">Received</th>
-            <th style="padding:10px 16px;text-align:left;font-size:9px;font-family:monospace;color:#4f617f;text-transform:uppercase;letter-spacing:0.1em;font-weight:500;border-bottom:1px solid #101c40;">Response</th>
+            <th style="padding:10px 16px;text-align:left;font-size:9px;font-family:monospace;color:#4f617f;text-transform:uppercase;letter-spacing:0.1em;font-weight:500;border-bottom:1px solid #101c40;">First Response</th>
+            <th style="padding:10px 16px;text-align:left;font-size:9px;font-family:monospace;color:#4f617f;text-transform:uppercase;letter-spacing:0.1em;font-weight:500;border-bottom:1px solid #101c40;">Resolution</th>
             <th style="padding:10px 16px;text-align:left;font-size:9px;font-family:monospace;color:#4f617f;text-transform:uppercase;letter-spacing:0.1em;font-weight:500;border-bottom:1px solid #101c40;">Status</th>
             <th style="padding:10px 16px;text-align:left;font-size:9px;font-family:monospace;color:#4f617f;text-transform:uppercase;letter-spacing:0.1em;font-weight:500;border-bottom:1px solid #101c40;">Requested By</th>
           </tr></thead>
@@ -326,7 +329,7 @@ function App() {
   const doRefresh = () => { loadData(); toast('Syncing from Google Sheets…'); };
 
   const doExport = () => {
-    const cols = ['client', 'received', 'replied', 'responseHrs', 'status', 'requestedBy'];
+    const cols = ['client', 'received', 'replied', 'responseHrs', 'resolvedAt', 'resolutionHrs', 'ratesResolved', 'resolvedBy', 'status', 'requestedBy'];
     const csv = [cols.join(',')].concat(filtered.map(r =>
       cols.map(c => '"' + (r[c] == null ? '' : String(r[c]).replace(/"/g, '""')) + '"').join(','))).join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });

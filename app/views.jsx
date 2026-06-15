@@ -76,6 +76,7 @@ function OverviewTab({ rows, statusFilter, setStatusFilter }) {
       if      (sortCol === 'client')    { av = (a.client || '').toLowerCase();      bv = (b.client || '').toLowerCase(); }
       else if (sortCol === 'received')  { av = ts(a.received);                      bv = ts(b.received); }
       else if (sortCol === 'response')  { av = a.responseHrs ?? nl;                 bv = b.responseHrs ?? nl; }
+      else if (sortCol === 'resolution'){ av = a.resolutionHrs ?? nl;               bv = b.resolutionHrs ?? nl; }
       else if (sortCol === 'status')    { av = a.status || '';                      bv = b.status || ''; }
       else if (sortCol === 'requester') { av = (a.requestedBy || '').toLowerCase(); bv = (b.requestedBy || '').toLowerCase(); }
       else                              { av = ts(a.received);                      bv = ts(b.received); }
@@ -182,7 +183,8 @@ function OverviewTab({ rows, statusFilter, setStatusFilter }) {
             <tr>
               <th style={thStyle} onClick={() => toggleSort('client')}>Client{si('client')}</th>
               <th style={thStyle} onClick={() => toggleSort('received')}>Received{si('received')}</th>
-              <th style={thStyle} onClick={() => toggleSort('response')}>Response{si('response')}</th>
+              <th style={thStyle} onClick={() => toggleSort('response')}>First Response{si('response')}</th>
+              <th style={thStyle} onClick={() => toggleSort('resolution')}>Resolution{si('resolution')}</th>
               <th style={thStyle} onClick={() => toggleSort('status')}>Status{si('status')}</th>
               <th style={thStyle} onClick={() => toggleSort('requester')}>Requested By{si('requester')}</th>
               <th></th>
@@ -194,13 +196,17 @@ function OverviewTab({ rows, statusFilter, setStatusFilter }) {
                 <td className="td-client">{r.client}</td>
                 <td className="td-mono">{r.received}</td>
                 <td className="td-mono" style={{ color: r.responseHrs == null ? 'var(--text-3)' : 'var(--text)' }}>{fmtHrs(r.responseHrs)}</td>
+                <td className="td-mono" style={{ color: r.resolutionHrs == null ? 'var(--text-3)' : 'var(--text)' }}>
+                  {fmtHrs(r.resolutionHrs)}
+                  {r.ratesResolved && <span className="rates-tag" title={'Resolved with a rates sheet' + (r.resolvedBy ? ' from ' + r.resolvedBy : '')}>Rates</span>}
+                </td>
                 <td><StatusChip status={r.status} /></td>
                 <td>{r.requestedBy}</td>
                 <td><a className="link-icon" href={r.link} target="_blank" rel="noopener" title="Open in Gmail"><Icon name="ext" /></a></td>
               </tr>
             ))}
             {tableRows.length === 0 && (
-              <tr><td colSpan="6" style={{ textAlign: 'center', padding: 40, color: 'var(--text-3)' }}>No requests match this filter.</td></tr>
+              <tr><td colSpan="7" style={{ textAlign: 'center', padding: 40, color: 'var(--text-3)' }}>No requests match this filter.</td></tr>
             )}
           </tbody>
         </table>
@@ -318,13 +324,17 @@ function RequesterDetail({ group, onBack }) {
         <div className="table-head"><div className="panel-title">Request Log</div></div>
         <div className="table-scroll">
           <table>
-            <thead><tr><th>Client</th><th>Received</th><th>Response</th><th>Status</th><th></th></tr></thead>
+            <thead><tr><th>Client</th><th>Received</th><th>First Response</th><th>Resolution</th><th>Status</th><th></th></tr></thead>
             <tbody>
               {group.list.map((r, i) => (
                 <tr key={i}>
                   <td className="td-client">{r.client}</td>
                   <td className="td-mono">{r.received}</td>
                   <td className="td-mono">{fmtHrs(r.responseHrs)}</td>
+                  <td className="td-mono">
+                    {fmtHrs(r.resolutionHrs)}
+                    {r.ratesResolved && <span className="rates-tag" title={'Resolved with a rates sheet' + (r.resolvedBy ? ' from ' + r.resolvedBy : '')}>Rates</span>}
+                  </td>
                   <td><StatusChip status={r.status} /></td>
                   <td><a className="link-icon" href={r.link} target="_blank" rel="noopener"><Icon name="ext" /></a></td>
                 </tr>

@@ -344,6 +344,10 @@ tbody tr:last-child td { border-bottom: none; }
 .chip-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; box-shadow: 0 0 6px currentColor; }
 .blair-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; font-family: var(--mono);
   padding: 3px 9px; border-radius: 999px; background: var(--lime-dim); color: var(--lime); border: 1px solid rgba(225,255,125,0.3); }
+.rates-tag { display: inline-flex; align-items: center; margin-left: 8px; font-size: 8.5px; font-weight: 600;
+  font-family: var(--mono); letter-spacing: 0.08em; text-transform: uppercase; vertical-align: middle;
+  padding: 2px 7px; border-radius: 999px; background: var(--lime-dim); color: var(--lime);
+  border: 1px solid rgba(225,255,125,0.35); box-shadow: 0 0 10px rgba(225,255,125,0.14); }
 .link-icon { color: var(--text-3); transition: color 0.16s; display: inline-flex; }
 .link-icon:hover { color: var(--lime); }
 .link-icon svg { width: 15px; height: 15px; }
