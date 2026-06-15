@@ -109,6 +109,7 @@
       var idxResolvedBy = getIdx(['Resolved By', 'ResolvedBy', 'Resolver']);
       var idxResolutionLinks = getIdx(['Resolution Links', 'ResolutionLinks', 'Rates Link', 'RatesLink', 'Resolution Attachments', 'Attachments', 'Resolution Body', 'ResolutionBody']);
       var idxRatesResolved = getIdx(['Rates Resolved', 'RatesResolved', 'Rates Sheet', 'RatesSheet', 'Has Rates']);
+      var idxResolutionHrs = getIdx(['Resolution Time (hrs)', 'ResolutionTime(hrs)', 'ResolutionTime']);
 
       var out = [];
       for (var i = 1; i < rows.length; i++) {
@@ -143,11 +144,17 @@
           } catch (e) { /* keep hrs */ }
         }
 
-        // time from first response → resolved
-        var resolutionHrs = null;
-        if (repliedVal && resolvedVal) {
-          var rd = new Date(repliedVal), sd = new Date(resolvedVal);
-          if (!isNaN(rd) && !isNaN(sd) && sd >= rd) resolutionHrs = Math.round((sd - rd) / 36e5 * 10) / 10;
+        // time from first response → resolved.
+        // Prefer the sheet's business-hours value (Mon–Fri 9–5, matching
+        // Response Time); fall back to raw wall-clock for pre-migration sheets.
+        var resolutionHrs = idxResolutionHrs !== undefined && r[idxResolutionHrs] !== ''
+          ? parseFloat(r[idxResolutionHrs]) : null;
+        if (resolutionHrs === null || isNaN(resolutionHrs)) {
+          resolutionHrs = null;
+          if (repliedVal && resolvedVal) {
+            var rd = new Date(repliedVal), sd = new Date(resolvedVal);
+            if (!isNaN(rd) && !isNaN(sd) && sd >= rd) resolutionHrs = Math.round((sd - rd) / 36e5 * 10) / 10;
+          }
         }
         var ratesFlag = idxRatesResolved !== undefined && (r[idxRatesResolved] || '').toUpperCase() === 'TRUE';
 
