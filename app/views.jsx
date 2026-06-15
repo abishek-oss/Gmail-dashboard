@@ -70,14 +70,15 @@ function OverviewTab({ rows, statusFilter, setStatusFilter }) {
   const tableRows = useMemoV(() => {
     const filtered = statusFilter === 'all' ? rows : rows.filter(r => r.status === statusFilter);
     const nl = sortDir === -1 ? Infinity : -Infinity;
+    const ts = v => { const t = v ? new Date(v).getTime() : NaN; return isNaN(t) ? nl : t; };
     return [...filtered].sort((a, b) => {
       let av, bv;
       if      (sortCol === 'client')    { av = (a.client || '').toLowerCase();      bv = (b.client || '').toLowerCase(); }
-      else if (sortCol === 'received')  { av = a.received || '';                    bv = b.received || ''; }
+      else if (sortCol === 'received')  { av = ts(a.received);                      bv = ts(b.received); }
       else if (sortCol === 'response')  { av = a.responseHrs ?? nl;                 bv = b.responseHrs ?? nl; }
       else if (sortCol === 'status')    { av = a.status || '';                      bv = b.status || ''; }
       else if (sortCol === 'requester') { av = (a.requestedBy || '').toLowerCase(); bv = (b.requestedBy || '').toLowerCase(); }
-      else                              { av = a.received || '';                    bv = b.received || ''; }
+      else                              { av = ts(a.received);                      bv = ts(b.received); }
       return av < bv ? sortDir : av > bv ? -sortDir : 0;
     });
   }, [rows, statusFilter, sortCol, sortDir]);
