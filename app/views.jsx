@@ -79,6 +79,7 @@ function OverviewTab({ rows, statusFilter, setStatusFilter }) {
       else if (sortCol === 'resolution'){ av = a.resolutionHrs ?? nl;               bv = b.resolutionHrs ?? nl; }
       else if (sortCol === 'status')    { av = a.status || '';                      bv = b.status || ''; }
       else if (sortCol === 'requester') { av = (a.requestedBy || '').toLowerCase(); bv = (b.requestedBy || '').toLowerCase(); }
+      else if (sortCol === 'resolved')  { av = ts(a.resolvedAt);                    bv = ts(b.resolvedAt); }
       else                              { av = ts(a.received);                      bv = ts(b.received); }
       return av < bv ? sortDir : av > bv ? -sortDir : 0;
     });
@@ -187,6 +188,7 @@ function OverviewTab({ rows, statusFilter, setStatusFilter }) {
               <th style={thStyle} onClick={() => toggleSort('resolution')}>Resolution{si('resolution')}</th>
               <th style={thStyle} onClick={() => toggleSort('status')}>Status{si('status')}</th>
               <th style={thStyle} onClick={() => toggleSort('requester')}>Requested By{si('requester')}</th>
+              <th style={thStyle} onClick={() => toggleSort('resolved')}>Resolved{si('resolved')}</th>
               <th></th>
             </tr>
           </thead>
@@ -202,11 +204,12 @@ function OverviewTab({ rows, statusFilter, setStatusFilter }) {
                 </td>
                 <td><StatusChip status={r.status} /></td>
                 <td>{r.requestedBy}</td>
+                <td className="td-mono" style={{ color: r.resolvedAt ? 'var(--text)' : 'var(--text-3)' }}>{r.resolvedAt || '—'}</td>
                 <td><a className="link-icon" href={r.link} target="_blank" rel="noopener" title="Open in Gmail"><Icon name="ext" /></a></td>
               </tr>
             ))}
             {tableRows.length === 0 && (
-              <tr><td colSpan="7" style={{ textAlign: 'center', padding: 40, color: 'var(--text-3)' }}>No requests match this filter.</td></tr>
+              <tr><td colSpan="8" style={{ textAlign: 'center', padding: 40, color: 'var(--text-3)' }}>No requests match this filter.</td></tr>
             )}
           </tbody>
         </table>
@@ -324,7 +327,7 @@ function RequesterDetail({ group, onBack }) {
         <div className="table-head"><div className="panel-title">Request Log</div></div>
         <div className="table-scroll">
           <table>
-            <thead><tr><th>Client</th><th>Received</th><th>First Response</th><th>Resolution</th><th>Status</th><th></th></tr></thead>
+            <thead><tr><th>Client</th><th>Received</th><th>First Response</th><th>Resolution</th><th>Status</th><th>Resolved</th><th></th></tr></thead>
             <tbody>
               {group.list.map((r, i) => (
                 <tr key={i}>
@@ -336,6 +339,7 @@ function RequesterDetail({ group, onBack }) {
                     {r.ratesResolved && <span className="rates-tag" title={'Resolved with a rates sheet' + (r.resolvedBy ? ' from ' + r.resolvedBy : '')}>Rates</span>}
                   </td>
                   <td><StatusChip status={r.status} /></td>
+                  <td className="td-mono" style={{ color: r.resolvedAt ? 'var(--text)' : 'var(--text-3)' }}>{r.resolvedAt || '—'}</td>
                   <td><a className="link-icon" href={r.link} target="_blank" rel="noopener"><Icon name="ext" /></a></td>
                 </tr>
               ))}

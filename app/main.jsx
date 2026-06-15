@@ -125,6 +125,7 @@ function generateWeeklyReportHTML(rows, weekLabel) {
     <td style="padding:11px 16px;font-size:11px;color:${r.resolutionHrs == null ? '#4f617f' : '#eaf1ff'};font-family:monospace;border-bottom:1px solid #0e1936;white-space:nowrap;">${fmtH(r.resolutionHrs)}${r.ratesResolved ? ratesPill : ''}</td>
     <td style="padding:11px 16px;border-bottom:1px solid #0e1936;"><span style="display:inline-block;font-size:10px;font-family:monospace;font-weight:600;padding:4px 10px;border-radius:999px;background:${SBG[r.status]};color:${SCOL[r.status]};border:1px solid ${SCOL[r.status]}55;white-space:nowrap;">${SLBL[r.status] || r.status}</span></td>
     <td style="padding:11px 16px;font-size:12px;color:#8ea2cc;border-bottom:1px solid #0e1936;">${r.requestedBy || '—'}</td>
+    <td style="padding:11px 16px;font-size:11px;color:${r.resolvedAt ? '#8ea2cc' : '#4f617f'};font-family:monospace;border-bottom:1px solid #0e1936;white-space:nowrap;">${r.resolvedAt || '—'}</td>
   </tr>`).join('');
 
   const stats = [
@@ -214,6 +215,7 @@ function generateWeeklyReportHTML(rows, weekLabel) {
             <th style="padding:10px 16px;text-align:left;font-size:9px;font-family:monospace;color:#4f617f;text-transform:uppercase;letter-spacing:0.1em;font-weight:500;border-bottom:1px solid #101c40;">Resolution</th>
             <th style="padding:10px 16px;text-align:left;font-size:9px;font-family:monospace;color:#4f617f;text-transform:uppercase;letter-spacing:0.1em;font-weight:500;border-bottom:1px solid #101c40;">Status</th>
             <th style="padding:10px 16px;text-align:left;font-size:9px;font-family:monospace;color:#4f617f;text-transform:uppercase;letter-spacing:0.1em;font-weight:500;border-bottom:1px solid #101c40;">Requested By</th>
+            <th style="padding:10px 16px;text-align:left;font-size:9px;font-family:monospace;color:#4f617f;text-transform:uppercase;letter-spacing:0.1em;font-weight:500;border-bottom:1px solid #101c40;">Resolved</th>
           </tr></thead>
           <tbody>${requestRows}</tbody>
         </table>
