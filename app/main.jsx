@@ -302,11 +302,21 @@ function App() {
   const clients = useM(() => [...new Set(allData.map(r => r.client))].sort(), [allData]);
   const requesters = useM(() => [...new Set(allData.map(r => r.requestedBy))].sort(), [allData]);
 
+  // received may be MM/DD/YYYY or ISO; normalize to YYYY-MM-DD for date-range compare
+  const isoDay = v => {
+    const d = v ? new Date(v) : null;
+    if (!d || isNaN(d)) return '';
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  };
   const filtered = useM(() => allData.filter(r => {
     if (client && r.client !== client) return false;
     if (requester && r.requestedBy !== requester) return false;
-    if (from && r.received.slice(0, 10) < from) return false;
-    if (to && r.received.slice(0, 10) > to) return false;
+    if (from || to) {
+      const day = isoDay(r.received);
+      if (!day) return false;
+      if (from && day < from) return false;
+      if (to && day > to) return false;
+    }
     return true;
   }), [allData, client, requester, from, to]);
 
