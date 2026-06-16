@@ -479,7 +479,25 @@ function App() {
               <OverviewTab rows={filtered} statusFilter={statusFilter} setStatusFilter={setStatusFilter} />
             </>
           )}
-          {tab === 'requester' && <RequesterTab rows={filtered} onToast={toast} />}
+          {tab === 'requester' && (
+            <>
+              {/* DATE FILTER */}
+              <div className="filters">
+                <div className="edge-glow" style={{ '--ring': 'rgba(225,255,125,0.3)' }} />
+                <div className="fgroup">
+                  <label className="flabel">From</label>
+                  <input type="date" className="finput" value={from} onChange={e => setFrom(e.target.value)} style={{ minWidth: 130 }} />
+                </div>
+                <span className="fsep">→</span>
+                <div className="fgroup">
+                  <label className="flabel">To</label>
+                  <input type="date" className="finput" value={to} onChange={e => setTo(e.target.value)} style={{ minWidth: 130 }} />
+                </div>
+                {(from || to) && <button className="btn-clear" onClick={() => { setFrom(''); setTo(''); }}>Clear dates</button>}
+              </div>
+              <RequesterTab rows={filtered} onToast={toast} />
+            </>
+          )}
           </>
           )}
         </div>
