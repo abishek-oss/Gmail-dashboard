@@ -219,7 +219,7 @@ function OverviewTab({ rows, statusFilter, setStatusFilter }) {
 }
 
 /* ── BY REQUESTER TAB ──────────────────────────────────────────── */
-function RequesterTab({ rows }) {
+function RequesterTab({ rows, onToast }) {
   const [selected, setSelected] = useStateV(null);
 
   const groups = useMemoV(() => {
@@ -236,7 +236,7 @@ function RequesterTab({ rows }) {
 
   if (selected) {
     const g = groups.find(x => x.name === selected);
-    if (g) return <RequesterDetail group={g} onBack={() => setSelected(null)} />;
+    if (g) return <RequesterDetail group={g} onBack={() => setSelected(null)} onToast={onToast} />;
   }
 
   const slaColor = sla => sla >= 80 ? 'var(--green)' : sla >= 50 ? 'var(--amber)' : 'var(--red)';
@@ -292,10 +292,45 @@ function RequesterTab({ rows }) {
   );
 }
 
-function RequesterDetail({ group, onBack }) {
+/* Build a mailto: link with the requester's request log as a plain-text table. */
+function buildRequesterMailto(group) {
+  const m = group;
+  const subject = 'Pricing Requests — ' + group.name;
+  const head = group.name + ' — ' + m.total + ' requests · '
+    + (m.avg ? fmtHrs(m.avg) : '—') + ' avg response · ' + Math.round(m.sla) + '% SLA';
+
+  const cols = ['Client', 'Received', 'First Response', 'Resolution', 'Status', 'Resolved'];
+  const rowsTxt = group.list.map(r => [
+    r.client || '—',
+    r.received || '—',
+    fmtHrs(r.responseHrs),
+    fmtHrs(r.resolutionHrs) + (r.ratesResolved ? ' (Rates)' : ''),
+    (window.STATUS_LABELS && window.STATUS_LABELS[r.status]) || r.status || '—',
+    r.resolvedAt || '—',
+  ].join('  |  '));
+
+  const body = [
+    head,
+    '',
+    cols.join('  |  '),
+    cols.map(() => '———').join('  |  '),
+    ...rowsTxt,
+    '',
+    'Generated from AMZ Prep · Pricing Intelligence',
+  ].join('\n');
+
+  return 'mailto:?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+}
+
+function RequesterDetail({ group, onBack, onToast }) {
   const m = group;
   const order = ['resolved', 'on-time', 'pending', 'delayed', 'overdue'];
   const maxCount = Math.max(...Object.values(m.counts), 1);
+
+  const sendLog = () => {
+    window.location.href = buildRequesterMailto(group);
+    if (onToast) onToast('Opening email draft for ' + group.name + ' — ' + group.list.length + ' requests');
+  };
   return (
     <>
       <button className="back-link" onClick={onBack}><Icon name="back" />All requesters</button>
@@ -324,7 +359,12 @@ function RequesterDetail({ group, onBack }) {
       </Tilt>
       <div className="table-panel">
         <div className="edge-glow" />
-        <div className="table-head"><div className="panel-title">Request Log</div></div>
+        <div className="table-head">
+          <div className="panel-title">Request Log</div>
+          <button className="btn blue" onClick={sendLog} title={'Email ' + group.name + "'s request log"}>
+            <Icon name="mail" />Send
+          </button>
+        </div>
         <div className="table-scroll">
           <table>
             <thead><tr><th>Client</th><th>Received</th><th>First Response</th><th>Resolution</th><th>Status</th><th>Resolved</th><th></th></tr></thead>

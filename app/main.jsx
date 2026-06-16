@@ -479,7 +479,7 @@ function App() {
               <OverviewTab rows={filtered} statusFilter={statusFilter} setStatusFilter={setStatusFilter} />
             </>
           )}
-          {tab === 'requester' && <RequesterTab rows={filtered} />}
+          {tab === 'requester' && <RequesterTab rows={filtered} onToast={toast} />}
           </>
           )}
         </div>
