@@ -292,7 +292,8 @@ function RequesterTab({ rows, onToast }) {
   );
 }
 
-/* Build a mailto: link with the requester's request log as a plain-text table. */
+/* Build a Gmail compose URL with the requester's request log as a plain-text
+   table. Opening it creates a draft in the signed-in Gmail account. */
 function buildRequesterMailto(group) {
   const m = group;
   const subject = 'Pricing Requests — ' + group.name;
@@ -319,7 +320,8 @@ function buildRequesterMailto(group) {
     'Generated from AMZ Prep · Pricing Intelligence',
   ].join('\n');
 
-  return 'mailto:?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+  return 'https://mail.google.com/mail/?view=cm&fs=1&tf=1&su='
+    + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
 }
 
 function RequesterDetail({ group, onBack, onToast }) {
@@ -354,8 +356,8 @@ function RequesterDetail({ group, onBack, onToast }) {
   const thStyle = { cursor: 'pointer', userSelect: 'none' };
 
   const sendLog = () => {
-    window.location.href = buildRequesterMailto(group);
-    if (onToast) onToast('Opening email draft for ' + group.name + ' — ' + group.list.length + ' requests');
+    window.open(buildRequesterMailto(group), '_blank', 'noopener');
+    if (onToast) onToast('Opening Gmail draft for ' + group.name + ' — ' + group.list.length + ' requests');
   };
   return (
     <>
