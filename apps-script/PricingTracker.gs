@@ -101,6 +101,13 @@ function doPost(e) {
       return ContentService.createTextOutput(JSON.stringify({ status: 'ok' }))
         .setMimeType(ContentService.MimeType.JSON);
     }
+    if (data.action === 'sendRequesterLog') {
+      if (!data.to) throw new Error('Missing recipient');
+      GmailApp.sendEmail(data.to, data.subject, data.plainBody || '',
+        { htmlBody: data.htmlBody, name: 'AMZ Prep Pricing' });
+      return ContentService.createTextOutput(JSON.stringify({ status: 'ok' }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
     return ContentService.createTextOutput(JSON.stringify({ status: 'error', error: 'Unknown action' }))
       .setMimeType(ContentService.MimeType.JSON);
   } catch (err) {

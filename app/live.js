@@ -185,6 +185,16 @@
     },
     sendWeekly: function () {
       return fetch(WEBAPP_URL + '?sendWeekly=1');
+    },
+    // Fire-and-forget POST to the web app; text/plain body avoids a CORS
+    // preflight, mode:no-cors matches the sheet/sendWeekly pattern.
+    sendRequesterLog: function (payload) {
+      return fetch(WEBAPP_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(Object.assign({ action: 'sendRequesterLog' }, payload))
+      });
     }
   };
 })();
