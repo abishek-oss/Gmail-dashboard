@@ -327,6 +327,32 @@ function RequesterDetail({ group, onBack, onToast }) {
   const order = ['resolved', 'on-time', 'pending', 'delayed', 'overdue'];
   const maxCount = Math.max(...Object.values(m.counts), 1);
 
+  const [sortCol, setSortCol] = useStateV('received');
+  const [sortDir, setSortDir] = useStateV(-1); // -1 desc, 1 asc
+
+  const sortedRows = useMemoV(() => {
+    const nl = sortDir === -1 ? Infinity : -Infinity;
+    const ts = v => { const t = v ? new Date(v).getTime() : NaN; return isNaN(t) ? nl : t; };
+    return [...group.list].sort((a, b) => {
+      let av, bv;
+      if      (sortCol === 'client')    { av = (a.client || '').toLowerCase(); bv = (b.client || '').toLowerCase(); }
+      else if (sortCol === 'received')  { av = ts(a.received);                 bv = ts(b.received); }
+      else if (sortCol === 'response')  { av = a.responseHrs ?? nl;            bv = b.responseHrs ?? nl; }
+      else if (sortCol === 'resolution'){ av = a.resolutionHrs ?? nl;          bv = b.resolutionHrs ?? nl; }
+      else if (sortCol === 'status')    { av = a.status || '';                 bv = b.status || ''; }
+      else if (sortCol === 'resolved')  { av = ts(a.resolvedAt);               bv = ts(b.resolvedAt); }
+      else                              { av = ts(a.received);                 bv = ts(b.received); }
+      return av < bv ? sortDir : av > bv ? -sortDir : 0;
+    });
+  }, [group.list, sortCol, sortDir]);
+
+  const toggleSort = col => {
+    if (sortCol === col) setSortDir(d => -d);
+    else { setSortCol(col); setSortDir(-1); }
+  };
+  const si = col => sortCol === col ? (sortDir === -1 ? ' ↓' : ' ↑') : ' ↕';
+  const thStyle = { cursor: 'pointer', userSelect: 'none' };
+
   const sendLog = () => {
     window.location.href = buildRequesterMailto(group);
     if (onToast) onToast('Opening email draft for ' + group.name + ' — ' + group.list.length + ' requests');
@@ -367,9 +393,17 @@ function RequesterDetail({ group, onBack, onToast }) {
         </div>
         <div className="table-scroll">
           <table>
-            <thead><tr><th>Client</th><th>Received</th><th>First Response</th><th>Resolution</th><th>Status</th><th>Resolved</th><th></th></tr></thead>
+            <thead><tr>
+              <th style={thStyle} onClick={() => toggleSort('client')}>Client{si('client')}</th>
+              <th style={thStyle} onClick={() => toggleSort('received')}>Received{si('received')}</th>
+              <th style={thStyle} onClick={() => toggleSort('response')}>First Response{si('response')}</th>
+              <th style={thStyle} onClick={() => toggleSort('resolution')}>Resolution{si('resolution')}</th>
+              <th style={thStyle} onClick={() => toggleSort('status')}>Status{si('status')}</th>
+              <th style={thStyle} onClick={() => toggleSort('resolved')}>Resolved{si('resolved')}</th>
+              <th></th>
+            </tr></thead>
             <tbody>
-              {group.list.map((r, i) => (
+              {sortedRows.map((r, i) => (
                 <tr key={i}>
                   <td className="td-client">{r.client}</td>
                   <td className="td-mono">{r.received}</td>
