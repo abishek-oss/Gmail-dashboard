@@ -140,6 +140,7 @@
       resolvedBy: resolvedBy,
       resolutionLinks: resolutionLinks,
       requestedBy: requestedBy,
+      requesterEmail: requestedBy.toLowerCase().replace(/[^a-z]+/g, '.') + '@example.com',
       reopenedAt: reopenedAt,
       reopenResolutionHrs: reopenResolutionHrs,
       blairInvolved: rand() < 0.3, // ~30% need Blair's intervention

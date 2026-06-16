@@ -320,8 +320,11 @@ function buildRequesterMailto(group) {
     'Generated from AMZ Prep · Pricing Intelligence',
   ].join('\n');
 
-  return 'https://mail.google.com/mail/?view=cm&fs=1&tf=1&su='
-    + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+  const to = (group.list.find(r => r.requesterEmail) || {}).requesterEmail || '';
+
+  return 'https://mail.google.com/mail/?view=cm&fs=1&tf=1'
+    + (to ? '&to=' + encodeURIComponent(to) : '')
+    + '&su=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
 }
 
 function RequesterDetail({ group, onBack, onToast }) {

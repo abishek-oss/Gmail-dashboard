@@ -103,6 +103,7 @@
       var idxStatus = getIdx(['Status', 'status']);
       var idxResolvedAt = getIdx(['Resolved At', 'ResolvedAt', 'Resolved']);
       var idxRequestedBy = getIdx(['Requested By', 'RequestedBy', 'Requested']);
+      var idxRequesterEmail = getIdx(['Requester Email', 'RequesterEmail', 'Requester Email Address', 'Email']);
       var idxReopenedAt = getIdx(['Reopened At', 'ReopenedAt', 'Reopened']);
       var idxReopenHrs = getIdx(['Reopen Resolution Time (hrs)', 'ReopenResolutionTime']);
       var idxBlair = getIdx(['Blair Involved', 'BlairInvolved', 'Blair']);
@@ -172,6 +173,7 @@
           resolutionLinks: resolutionLinksVal || '',
           ratesResolved: ratesFlag,
           requestedBy: idxRequestedBy !== undefined ? (r[idxRequestedBy] || '') : '',
+          requesterEmail: idxRequesterEmail !== undefined ? (r[idxRequesterEmail] || '') : '',
           reopenedAt: idxReopenedAt !== undefined ? (r[idxReopenedAt] || '') : '',
           reopenResolutionHrs: reopenHrs,
           blairInvolved: idxBlair !== undefined ? (r[idxBlair] || '').toUpperCase() === 'TRUE' : false

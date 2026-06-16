@@ -340,6 +340,7 @@ function trackPricingRequest(thread, messages) {
   var requestedBy = rawSender.indexOf("<") !== -1
     ? rawSender.substring(0, rawSender.indexOf("<")).trim().replace(/"/g, "")
     : rawSender.trim();
+  var requesterEmail = extractEmail(rawSender);
 
   if (isRepliedByMe(messages)) {
     var replyMsg = getMyFirstReply(messages);
@@ -359,6 +360,26 @@ function trackPricingRequest(thread, messages) {
     "https://mail.google.com/mail/u/0/#inbox/" + threadId,
     replyDate, responseHrs, status, "", requestedBy
   ]);
+  setRequesterEmail(sheet, sheet.getLastRow(), requesterEmail);
+}
+
+// Pull the bare address out of a "Name <email@domain>" From header.
+function extractEmail(from) {
+  var m = (from || '').match(/<([^>]+)>/);
+  if (m) return m[1].trim();
+  return /\S+@\S+/.test(from) ? (from || '').trim() : '';
+}
+
+// Write the requester email into the "Requester Email" column, creating it if absent.
+function setRequesterEmail(sheet, row, email) {
+  var lastCol = sheet.getLastColumn();
+  var headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+  var col = headers.indexOf('Requester Email');
+  if (col === -1) {
+    col = lastCol;                                  // append a new column at the end
+    sheet.getRange(1, col + 1).setValue('Requester Email');
+  }
+  sheet.getRange(row, col + 1).setValue(email || '');
 }
 
 function backfillPricingRequests() {
@@ -502,6 +523,7 @@ function stampResolution(sheet, rowIndex, messages, resolvedDate) {
 }
 
 function detectRatesInThread(messages) {
+  if (!messages || !messages.length) return { found: false, resolvedBy: "" };
   for (var i = 0; i < messages.length; i++) {
     var msg  = messages[i];
     var from = (msg.getFrom() || "").toLowerCase();
@@ -569,6 +591,51 @@ function backfillResolutionAndRates() {
   }
 
   Logger.log("Backfill resolution/rates done — " + count + " row(s) processed.");
+}
+
+// ============================================================
+// REQUESTER EMAIL BACKFILL — one-time fill for existing rows
+// ── reads each thread's first-message sender and writes the
+//    bare address into the "Requester Email" column
+// ============================================================
+function backfillRequesterEmails() {
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(10000)) return;
+
+  var ss    = SpreadsheetApp.openById('13_1g-Iej0YNbR-6YY2rLoM3-R5uHWpfqdrSh2FLct44');
+  var sheet = ss.getSheetByName('Tracker');
+  var data  = sheet.getDataRange().getValues();
+  var headers = data[0];
+
+  var emailCol = headers.indexOf('Requester Email');
+  if (emailCol === -1) {
+    emailCol = headers.length;
+    sheet.getRange(1, emailCol + 1).setValue('Requester Email');
+  }
+
+  var threadIdCol = headers.indexOf('Thread ID');
+  if (threadIdCol === -1) { lock.releaseLock(); return; }
+
+  var results = [];
+  for (var i = 1; i < data.length; i++) {
+    var existing = data[i][emailCol];
+    if (existing) { results.push([existing]); continue; }   // keep what's already there
+    var threadId = data[i][threadIdCol];
+    if (!threadId) { results.push(['']); continue; }
+    try {
+      var thread = GmailApp.getThreadById(threadId);
+      var msgs   = thread ? thread.getMessages() : null;
+      results.push([msgs && msgs.length ? extractEmail(msgs[0].getFrom()) : '']);
+    } catch (e) {
+      results.push(['']);
+    }
+  }
+
+  if (results.length > 0) {
+    sheet.getRange(2, emailCol + 1, results.length, 1).setValues(results);
+  }
+  lock.releaseLock();
+  Logger.log('Requester email backfill done — ' + results.length + ' row(s).');
 }
 
 // ============================================================
