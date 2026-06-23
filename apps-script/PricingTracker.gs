@@ -1331,7 +1331,7 @@ function getOrCreateSheet() {
 }
 
 function getWebAppUrl() {
-  return "https://script.google.com/macros/s/AKfycbwj0cBbxCF3Pff0J_dvA4bnPG9KaEoykWyv7oCdW2R0GFa4NDZe07eZVP9shsnX5E4N/exec";
+  return "https://script.google.com/macros/s/AKfycbyeeXWOmJJE3mgl9hlZyvtBjM7XsNmo95BDQQsx-crPZlefc1oW4JCK328ixMTpJFUk/exec";
 }
 
 // Returns the Tracker sheet as a 2D array (header row + data) for the
