@@ -192,6 +192,11 @@ function doPost(e) {
     if (!caller) return jsonOut_({ status: 'error', error: 'Unauthorized' });
 
     if (data.action === 'sendRequesterLog') {
+      // Only the account owner may dispatch a requester log. The mail is always
+      // sent FROM this account (the script executes as the owner); this gate
+      // makes sure ONLY the owner — not just any signed-in @amzprep.com user —
+      // can trigger it to a recipient.
+      if (caller !== MY_EMAIL) return jsonOut_({ status: 'error', error: 'Forbidden' });
       if (!data.to) throw new Error('Missing recipient');
       GmailApp.sendEmail(data.to, data.subject, data.plainBody || '',
         { htmlBody: data.htmlBody, name: 'AMZ Prep Pricing' });
