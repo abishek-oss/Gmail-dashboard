@@ -84,36 +84,6 @@ function verifyFirebaseUser_(idToken) {
   }
 }
 
-// TEMPORARY DIAGNOSTIC — same checks as verifyFirebaseUser_ but returns the
-// reason it failed so we can see why a token is rejected. Delete once fixed.
-function verifyFirebaseUserVerbose_(idToken) {
-  if (!idToken) return { reason: 'no idToken received by server' };
-  try {
-    var res = UrlFetchApp.fetch(
-      'https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=' + FIREBASE_API_KEY,
-      {
-        method: 'post',
-        contentType: 'application/json',
-        payload: JSON.stringify({ idToken: idToken }),
-        muteHttpExceptions: true
-      }
-    );
-    var code = res.getResponseCode();
-    var txt  = res.getContentText();
-    if (code !== 200) return { reason: 'lookup HTTP ' + code + ' :: ' + txt.slice(0, 300) +
-                                         ' (idToken len=' + idToken.length + ')' };
-    var users = (JSON.parse(txt) || {}).users || [];
-    var u = users[0];
-    if (!u)            return { reason: 'lookup ok but no user returned' };
-    if (!u.email)      return { reason: 'user has no email' };
-    if (u.emailVerified !== true) return { reason: 'emailVerified=' + u.emailVerified };
-    if (String(u.email).split('@')[1] !== ALLOWED_DOMAIN) return { reason: 'wrong domain: ' + u.email };
-    return { email: u.email };
-  } catch (err) {
-    return { reason: 'exception: ' + err.message };
-  }
-}
-
 function getWebAppToken_() {
   return PropertiesService.getScriptProperties().getProperty('WEBAPP_TOKEN') || '';
 }
@@ -153,11 +123,8 @@ function doGet(e) {
   // owner and only hands rows to a verified @amzprep.com caller. The browser
   // no longer reads the sheet directly, so there is no public CSV to scrape.
   if (params.action === 'getData') {
-    var v = verifyFirebaseUserVerbose_(params.idToken);
-    if (!v.email) {
-      // TEMPORARY: `reason` explains why verification failed. Remove `reason`
-      // (and verifyFirebaseUserVerbose_) once the data feed is confirmed working.
-      return jsonOut_({ status: 'error', error: 'Unauthorized', reason: v.reason });
+    if (!verifyFirebaseUser_(params.idToken)) {
+      return jsonOut_({ status: 'error', error: 'Unauthorized' });
     }
     return jsonOut_({ status: 'ok', rows: getTrackerRows_() });
   }
