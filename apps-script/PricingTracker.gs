@@ -37,12 +37,90 @@ var NUDGE_RULES = [
 var ABANDON_DAYS = 6.5;
 
 // ============================================================
+// SECURITY — endpoint authorization
+// ============================================================
+// The web app is deployed "Execute as: me", so every request runs with
+// full access to THIS Gmail account. It must therefore authenticate the
+// caller. Two gates are used:
+//
+//  • doPost (sends email as you): requires a Firebase ID token, which is
+//    verified server-side against Google Identity Toolkit. Only a signed-in,
+//    email-verified @amzprep.com user can pass — an outsider cannot forge one.
+//
+//  • doGet (resolve / sendWeekly links clicked from internal emails):
+//    requires a shared token (?t=...) stored in Script Properties, since a
+//    Firebase token can't be embedded in an email link.
+//
+// SET THESE ONCE: Project Settings → Script Properties
+//    WEBAPP_TOKEN = <a long random string>
+// (FIREBASE_API_KEY below is a public Firebase web key — safe to inline.)
+var FIREBASE_API_KEY = 'AIzaSyBTrhx2cB93AA54ie9BYdGm3llJRf3Ect0';
+var ALLOWED_DOMAIN   = 'amzprep.com';
+
+// Verify a Firebase ID token via Identity Toolkit. Returns the caller's
+// email if the token is valid, email-verified, and on the allowed domain;
+// otherwise null. An attacker without an @amzprep.com Firebase account
+// cannot produce a token that passes.
+function verifyFirebaseUser_(idToken) {
+  if (!idToken) return null;
+  try {
+    var res = UrlFetchApp.fetch(
+      'https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=' + FIREBASE_API_KEY,
+      {
+        method: 'post',
+        contentType: 'application/json',
+        payload: JSON.stringify({ idToken: idToken }),
+        muteHttpExceptions: true
+      }
+    );
+    if (res.getResponseCode() !== 200) return null;
+    var users = (JSON.parse(res.getContentText()) || {}).users || [];
+    var u = users[0];
+    if (!u || !u.email || u.emailVerified !== true) return null;
+    if (String(u.email).split('@')[1] !== ALLOWED_DOMAIN) return null;
+    return u.email;
+  } catch (err) {
+    return null;
+  }
+}
+
+function getWebAppToken_() {
+  return PropertiesService.getScriptProperties().getProperty('WEBAPP_TOKEN') || '';
+}
+
+// Constant-time-ish comparison for the doGet shared token.
+function tokenOk_(provided) {
+  var expected = getWebAppToken_();
+  return !!expected && provided === expected;
+}
+
+function jsonOut_(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function unauthorizedPage_() {
+  return HtmlService.createHtmlOutput(
+    '<div style="font-family:sans-serif;max-width:460px;margin:4rem auto;text-align:center;padding:2rem;">' +
+    '<div style="font-size:44px;margin-bottom:12px;">🔒</div>' +
+    '<h2 style="color:#dc2626;margin-bottom:8px;">Not authorized</h2>' +
+    '<p style="color:#64748b;font-size:14px;">This link is missing a valid access token.</p>' +
+    '</div>'
+  );
+}
+
+// ============================================================
 // WEB APP
 // ── Default page shows a "Send Previous Week Report" button
 // ============================================================
 function doGet(e) {
-  var threadId   = e && e.parameter && e.parameter.resolve;
-  var sendWeekly = e && e.parameter && e.parameter.sendWeekly;
+  var params     = (e && e.parameter) || {};
+  var threadId   = params.resolve;
+  var sendWeekly = params.sendWeekly;
+
+  // Every GET action is gated by the shared token (?t=...). Without it,
+  // resolve/sendWeekly and the landing page are all refused.
+  if (!tokenOk_(params.t)) return unauthorizedPage_();
 
   if (threadId)   return resolveThread(threadId);
   if (sendWeekly) return triggerWeeklyReport();
@@ -60,7 +138,7 @@ function doGet(e) {
     '<h2 style="color:#0f1e3c;margin:0 0 8px;font-size:22px;">AMZ Prep Pricing Tracker</h2>' +
     '<p style="color:#64748b;font-size:14px;margin-bottom:28px;line-height:1.6;">' +
     'Send last week\'s pricing performance report to the team.</p>' +
-    '<a href="?sendWeekly=1" style="display:inline-block;background:#0f1e3c;color:#fff;' +
+    '<a href="?sendWeekly=1&t=' + encodeURIComponent(params.t) + '" style="display:inline-block;background:#0f1e3c;color:#fff;' +
     'padding:13px 32px;border-radius:8px;text-decoration:none;font-size:15px;font-weight:600;">' +
     '📨 Send Previous Week Report</a>' +
     '<p style="color:#94a3b8;font-size:12px;margin-top:20px;">' +
@@ -78,7 +156,7 @@ function triggerWeeklyReport() {
       '<div style="font-size:48px;margin-bottom:16px;">✅</div>' +
       '<h2 style="color:#0f1e3c;margin-bottom:8px;">Report Sent!</h2>' +
       '<p style="color:#64748b;font-size:14px;">The previous week\'s pricing report has been sent to all recipients.</p>' +
-      '<a href="' + getWebAppUrl() + '" style="display:inline-block;margin-top:24px;background:#0f1e3c;' +
+      '<a href="' + getWebAppUrl() + '?t=' + encodeURIComponent(getWebAppToken_()) + '" style="display:inline-block;margin-top:24px;background:#0f1e3c;' +
       'color:#fff;padding:10px 24px;border-radius:7px;text-decoration:none;font-size:14px;font-weight:600;">' +
       '← Back to Dashboard</a>' +
       '</div>'
@@ -96,23 +174,27 @@ function triggerWeeklyReport() {
 function doPost(e) {
   try {
     var data = JSON.parse(e.postData.contents);
-    if (data.action === 'sendBlairReport') {
-      GmailApp.sendEmail(data.to, data.subject, '', { htmlBody: data.htmlBody });
-      return ContentService.createTextOutput(JSON.stringify({ status: 'ok' }))
-        .setMimeType(ContentService.MimeType.JSON);
-    }
+
+    // AUTH: every POST sends mail as this account, so the caller must prove
+    // they are a signed-in, verified @amzprep.com user. No valid token → refused.
+    var caller = verifyFirebaseUser_(data.idToken);
+    if (!caller) return jsonOut_({ status: 'error', error: 'Unauthorized' });
+
     if (data.action === 'sendRequesterLog') {
       if (!data.to) throw new Error('Missing recipient');
       GmailApp.sendEmail(data.to, data.subject, data.plainBody || '',
         { htmlBody: data.htmlBody, name: 'AMZ Prep Pricing' });
-      return ContentService.createTextOutput(JSON.stringify({ status: 'ok' }))
-        .setMimeType(ContentService.MimeType.JSON);
+      return jsonOut_({ status: 'ok' });
     }
-    return ContentService.createTextOutput(JSON.stringify({ status: 'error', error: 'Unknown action' }))
-      .setMimeType(ContentService.MimeType.JSON);
+
+    if (data.action === 'sendWeekly') {
+      sendWeeklyReport();
+      return jsonOut_({ status: 'ok' });
+    }
+
+    return jsonOut_({ status: 'error', error: 'Unknown action' });
   } catch (err) {
-    return ContentService.createTextOutput(JSON.stringify({ status: 'error', error: err.message }))
-      .setMimeType(ContentService.MimeType.JSON);
+    return jsonOut_({ status: 'error', error: err.message });
   }
 }
 
@@ -249,7 +331,7 @@ function checkForOverdueEmails() {
 
   overdue.forEach(function(e) {
     var resolveBtn = webAppUrl
-      ? ' <a href="' + webAppUrl + '?resolve=' + e.threadId +
+      ? ' <a href="' + webAppUrl + '?resolve=' + e.threadId + '&t=' + encodeURIComponent(getWebAppToken_()) +
         '" style="display:inline-block;background:#16a34a;color:#fff;font-size:11px;' +
         'font-weight:600;padding:3px 10px;border-radius:4px;text-decoration:none;margin-left:8px;">Mark as Resolved</a>'
       : '';

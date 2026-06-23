@@ -183,17 +183,33 @@
       }
       return out;
     },
-    sendWeekly: function () {
-      return fetch(WEBAPP_URL + '?sendWeekly=1');
+    // Grab a fresh Firebase ID token for the signed-in user. The web app
+    // verifies this server-side before doing anything, so anonymous callers
+    // (who don't have an @amzprep.com Firebase session) are rejected.
+    idToken: async function () {
+      var user = firebase.auth().currentUser;
+      if (!user) throw new Error('Not signed in.');
+      return user.getIdToken();
     },
-    // Fire-and-forget POST to the web app; text/plain body avoids a CORS
-    // preflight, mode:no-cors matches the sheet/sendWeekly pattern.
-    sendRequesterLog: function (payload) {
+    sendWeekly: async function () {
+      var token = await this.idToken();
       return fetch(WEBAPP_URL, {
         method: 'POST',
         mode: 'no-cors',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(Object.assign({ action: 'sendRequesterLog' }, payload))
+        body: JSON.stringify({ action: 'sendWeekly', idToken: token })
+      });
+    },
+    // Fire-and-forget POST to the web app; text/plain body avoids a CORS
+    // preflight, mode:no-cors matches the sheet/sendWeekly pattern. The
+    // idToken authenticates the caller to the Apps Script backend.
+    sendRequesterLog: async function (payload) {
+      var token = await this.idToken();
+      return fetch(WEBAPP_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(Object.assign({ action: 'sendRequesterLog', idToken: token }, payload))
       });
     }
   };
