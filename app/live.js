@@ -63,7 +63,11 @@
       if (!res.ok) throw new Error('Cannot reach data feed (HTTP ' + res.status + ').');
       var payload = await res.json();
       if (!payload || payload.status !== 'ok') {
-        throw new Error((payload && payload.error) || 'Data feed refused the request.');
+        // TEMPORARY: surface the server-side `reason` (from the diagnostic build)
+        // so auth failures are visible in the banner. Drop once the feed works.
+        var msg = (payload && payload.error) || 'Data feed refused the request.';
+        if (payload && payload.reason) msg += ' — ' + payload.reason;
+        throw new Error(msg);
       }
       var rows = payload.rows || [];
       if (rows.length < 2) throw new Error('No tracker data yet — run backfillPricingRequests() first.');
