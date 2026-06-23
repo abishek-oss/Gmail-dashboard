@@ -103,16 +103,16 @@ The dashboard reads directly from the Google Sheet — no API keys or logins req
 5. Paste the URL into the `getWebAppUrl()` function in the script
 6. Redeploy (Deploy → Manage deployments → edit → New version)
 
-### Step 3 — Make the Google Sheet public
+### Step 3 — Keep the Google Sheet PRIVATE
 1. The script automatically creates a **"Pricing Response Tracker"** Google Sheet in your Drive the first time it runs
-2. Open the sheet → **Share → Anyone with the link → Viewer**
-3. Copy the Sheet ID from the URL: `docs.google.com/spreadsheets/d/`**`SHEET_ID`**`/edit`
+2. **Do NOT share it.** Leave it **Restricted** (only you). ⚠️ Never set it to "Anyone with the link" — the dashboard does **not** read the sheet directly. It reads through the authenticated web app (`?action=getData` + a per-user Firebase token), so the sheet stays private and the data can't be scraped from the public page source.
+3. Set a `WEBAPP_TOKEN` in **Project Settings → Script Properties** (a long random string) — this gates the resolve / weekly-report links.
 
 ### Step 4 — Deploy the dashboard to GitHub Pages
 1. Upload `index.html` to your GitHub repo
 2. Go to **Settings → Pages → Branch: main / (root)** → Save
 3. Your dashboard will be live at `https://yourusername.github.io/reponame`
-4. Open the dashboard — it will load automatically (Sheet ID is hardcoded)
+4. Open the dashboard → **sign in with your @amzprep.com Google account**; data loads only after the web app verifies your identity
 
 ### Step 5 — Backfill historical data (optional)
 Run these one-time scripts in Apps Script to populate existing data:

@@ -118,7 +118,18 @@ function doGet(e) {
   var threadId   = params.resolve;
   var sendWeekly = params.sendWeekly;
 
-  // Every GET action is gated by the shared token (?t=...). Without it,
+  // Dashboard data feed — authenticated PER USER via a Firebase ID token.
+  // This is what lets the Google Sheet stay PRIVATE: the script runs as the
+  // owner and only hands rows to a verified @amzprep.com caller. The browser
+  // no longer reads the sheet directly, so there is no public CSV to scrape.
+  if (params.action === 'getData') {
+    if (!verifyFirebaseUser_(params.idToken)) {
+      return jsonOut_({ status: 'error', error: 'Unauthorized' });
+    }
+    return jsonOut_({ status: 'ok', rows: getTrackerRows_() });
+  }
+
+  // Every other GET action is gated by the shared token (?t=...). Without it,
   // resolve/sendWeekly and the landing page are all refused.
   if (!tokenOk_(params.t)) return unauthorizedPage_();
 
@@ -181,6 +192,11 @@ function doPost(e) {
     if (!caller) return jsonOut_({ status: 'error', error: 'Unauthorized' });
 
     if (data.action === 'sendRequesterLog') {
+      // Only the account owner may dispatch a requester log. The mail is always
+      // sent FROM this account (the script executes as the owner); this gate
+      // makes sure ONLY the owner — not just any signed-in @amzprep.com user —
+      // can trigger it to a recipient.
+      if (caller !== MY_EMAIL) return jsonOut_({ status: 'error', error: 'Forbidden' });
       if (!data.to) throw new Error('Missing recipient');
       GmailApp.sendEmail(data.to, data.subject, data.plainBody || '',
         { htmlBody: data.htmlBody, name: 'AMZ Prep Pricing' });
@@ -1316,6 +1332,17 @@ function getOrCreateSheet() {
 
 function getWebAppUrl() {
   return "https://script.google.com/macros/s/AKfycbwj0cBbxCF3Pff0J_dvA4bnPG9KaEoykWyv7oCdW2R0GFa4NDZe07eZVP9shsnX5E4N/exec";
+}
+
+// Returns the Tracker sheet as a 2D array (header row + data) for the
+// authenticated dashboard feed. Display values keep the same formatted
+// strings the front-end already knows how to parse. Because this runs as
+// the sheet owner, the sheet can be set to "Restricted" (private) in Drive.
+function getTrackerRows_() {
+  var ss    = SpreadsheetApp.openById('13_1g-Iej0YNbR-6YY2rLoM3-R5uHWpfqdrSh2FLct44');
+  var sheet = ss.getSheetByName('Tracker');
+  if (!sheet) return [];
+  return sheet.getDataRange().getDisplayValues();
 }
 
 // ============================================================

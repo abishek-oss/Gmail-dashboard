@@ -21,7 +21,6 @@
     measurementId: "G-837MTMN2VW"
   };
   var ALLOWED_DOMAIN = 'amzprep.com';
-  var SHEET_ID   = '13_1g-Iej0YNbR-6YY2rLoM3-R5uHWpfqdrSh2FLct44';
   var WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbwj0cBbxCF3Pff0J_dvA4bnPG9KaEoykWyv7oCdW2R0GFa4NDZe07eZVP9shsnX5E4N/exec';
 
   firebase.initializeApp(firebaseConfig);
@@ -53,34 +52,21 @@
     signOut: function () { firebase.auth().signOut(); }
   };
 
-  // ── CSV PARSER (verbatim) ───────────────────────────────────
-  function parseCSV(text) {
-    var rows = [], lines = text.split('\n');
-    for (var i = 0; i < lines.length; i++) {
-      var line = lines[i].trim(); if (!line) continue;
-      var cols = [], cur = '', inQ = false;
-      for (var j = 0; j < line.length; j++) {
-        var ch = line[j];
-        if (ch === '"') inQ = !inQ;
-        else if (ch === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
-        else cur += ch;
-      }
-      cols.push(cur.trim()); rows.push(cols);
-    }
-    return rows;
-  }
-
   window.LiveData = {
-    sheetUrl: function () {
-      return 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tqx=out:csv&sheet=Tracker';
-    },
+    // Pull the tracker rows from the authenticated Apps Script feed. The
+    // sheet is private; only a signed-in @amzprep.com user (whose Firebase
+    // ID token is verified server-side) gets data back. There is no longer
+    // a public CSV that anyone could scrape from this page's source.
     load: async function () {
-      var res = await fetch(this.sheetUrl());
-      if (!res.ok) throw new Error('Cannot reach sheet (HTTP ' + res.status + '). Ensure the sheet is set to public view.');
-      var csv = await res.text();
-      if (csv.includes('<!DOCTYPE')) throw new Error('Sheet not found or not public.');
-      var rows = parseCSV(csv);
-      if (rows.length < 2) throw new Error('Sheet is empty — run backfillPricingRequests() first.');
+      var token = await this.idToken();
+      var res = await fetch(WEBAPP_URL + '?action=getData&idToken=' + encodeURIComponent(token));
+      if (!res.ok) throw new Error('Cannot reach data feed (HTTP ' + res.status + ').');
+      var payload = await res.json();
+      if (!payload || payload.status !== 'ok') {
+        throw new Error((payload && payload.error) || 'Data feed refused the request.');
+      }
+      var rows = payload.rows || [];
+      if (rows.length < 2) throw new Error('No tracker data yet — run backfillPricingRequests() first.');
 
       // tolerant header → index mapping
       var col = {};
